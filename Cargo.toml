@@ -1,0 +1,48 @@
+[package]
+name = "ehrentag"
+version = "1.0.0"
+edition = "2021"
+description = "Ehrentag-Manager: keep track of birthdays, name days and other dates worth remembering"
+license = "MIT"
+readme = "README.md"
+authors = ["Dietmar Schnabel <dschnabel64<at>gmail.com>"]
+repository = "https://github.com/dietmarschnabel-code/ehrentag"
+
+[dependencies]
+eframe = "0.29"
+chrono = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+
+# ───────────── .deb (cargo install cargo-deb && cargo deb --no-build) ─────────────
+[package.metadata.deb]
+name = "ehrentag"
+maintainer = "Dietmar Schnabel <dschnabel64<at>gmail.com>"
+copyright = "2026, Dietmar Schnabel"
+license-file = ["LICENSE", "0"]
+extended-description = """\
+Ehrentag-Manager shows your upcoming birthdays, name days, wedding \
+anniversaries and other special dates and has an editor for adding new \
+entries. English and German user interface, with a MARTIN banner for the \
+start of carnival season on 11 November."""
+section = "utils"
+priority = "optional"
+depends = "$auto, libgl1, libxkbcommon0, libxkbcommon-x11-0"
+assets = [
+    ["target/release/ehrentag", "usr/bin/", "755"],
+    ["packaging/ehrentag.desktop", "usr/share/applications/", "644"],
+    ["packaging/ehrentag.png", "usr/share/icons/hicolor/256x256/apps/", "644"],
+    ["README.md", "usr/share/doc/ehrentag/README.md", "644"],
+]
+
+# ───────────── .rpm (cargo install cargo-generate-rpm && cargo generate-rpm) ─────────────
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/ehrentag", dest = "/usr/bin/ehrentag", mode = "755" },
+    { source = "packaging/ehrentag.desktop", dest = "/usr/share/applications/ehrentag.desktop", mode = "644" },
+    { source = "packaging/ehrentag.png", dest = "/usr/share/icons/hicolor/256x256/apps/ehrentag.png", mode = "644" },
+    { source = "README.md", dest = "/usr/share/doc/ehrentag/README.md", mode = "644", doc = true },
+]

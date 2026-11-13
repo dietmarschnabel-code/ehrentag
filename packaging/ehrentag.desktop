@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Ehrentag-Manager
+GenericName=Birthdays and special dates
+GenericName[de]=Geburtstage und Gedenktage
+Comment=Keep track of birthdays, name days and other special dates
+Comment[de]=Geburtstage, Namenstage und andere Gedenktage im Blick
+Exec=ehrentag
+Icon=ehrentag
+Terminal=false
+Categories=Utility;Office;Calendar;
+Keywords=birthday;name day;calendar;carnival;Martin;Geburtstag;Namenstag;Kalender;Fasching;
+StartupWMClass=ehrentag
