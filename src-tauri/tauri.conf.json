@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Ehrentag-Manager",
+  "version": "1.0.0",
+  "identifier": "io.github.dietmarschnabel-code.ehrentag",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Ehrentag-Manager",
+        "width": 820,
+        "height": 800,
+        "minWidth": 360,
+        "minHeight": 520
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "Dietmar Schnabel",
+    "copyright": "Copyright (c) 2026 Dietmar Schnabel",
+    "category": "Utility",
+    "shortDescription": "Birthdays, name days and other dates worth remembering",
+    "longDescription": "Ehrentag-Manager shows your upcoming birthdays, name days, wedding anniversaries and other special dates, has an editor for adding new entries, and can send reminders on Android. English and German user interface, with a MARTIN banner for the start of carnival season on 11 November.",
+    "licenseFile": "../LICENSE",
+    "windows": {
+      "nsis": {
+        "installMode": "perMachine",
+        "displayLanguageSelector": true,
+        "languages": ["English", "German"]
+      }
+    }
+  }
+}

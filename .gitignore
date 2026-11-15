@@ -1,5 +1,7 @@
-/target
-/dist
+node_modules/
+target/
+dist/
+
 # Never commit personal data
 gebdatei.dat
 gebdatei.dat.bak

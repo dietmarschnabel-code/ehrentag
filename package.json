@@ -1,0 +1,12 @@
+{
+  "name": "ehrentag",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ehrentag-Manager: birthdays, name days and other dates worth remembering",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

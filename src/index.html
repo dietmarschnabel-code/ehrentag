@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>Ehrentag-Manager</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="app">
+      <!-- ───────────── Overview ───────────── -->
+      <section id="view-overview">
+        <canvas id="banner" aria-hidden="true"></canvas>
+
+        <h1 id="title">Ehrentag-Manager</h1>
+        <p id="subtitle" class="subtitle"></p>
+        <p id="today" class="today"></p>
+
+        <h2 id="upcoming-heading" class="upcoming" hidden></h2>
+        <div id="cards"></div>
+        <p id="overview-note" class="muted" hidden></p>
+
+        <div class="center">
+          <button id="btn-manage" type="button" class="primary big" data-i18n="manageBtn"></button>
+        </div>
+      </section>
+
+      <!-- ───────────── Manage / editor ───────────── -->
+      <section id="view-manage" hidden>
+        <header class="manage-head">
+          <h2 data-i18n="manageTitle"></h2>
+          <button id="btn-back" type="button" data-i18n="back"></button>
+        </header>
+        <p id="file-label" class="muted small"></p>
+
+        <form id="entry-form" class="panel" autocomplete="off" novalidate>
+          <h3 id="form-title"></h3>
+
+          <label class="field">
+            <span data-i18n="labelName"></span>
+            <input id="f-name" type="text" maxlength="60" data-i18n-ph="nameHint" />
+          </label>
+
+          <label class="field">
+            <span data-i18n="labelKind"></span>
+            <select id="f-kind"></select>
+          </label>
+
+          <div class="field">
+            <span data-i18n="labelDate"></span>
+            <div class="date-row">
+              <input id="f-day" type="text" inputmode="numeric" maxlength="2" data-i18n-ph="phDay" aria-label="Day" />
+              <span>.</span>
+              <input id="f-month" type="text" inputmode="numeric" maxlength="2" data-i18n-ph="phMonth" aria-label="Month" />
+              <span>.</span>
+              <input id="f-year" type="text" inputmode="numeric" maxlength="4" data-i18n-ph="phYear" aria-label="Year" />
+            </div>
+          </div>
+          <p id="year-hint" class="muted small"></p>
+
+          <div class="row">
+            <button id="btn-save" type="submit" class="primary"></button>
+            <button id="btn-cancel" type="button" data-i18n="btnCancel" hidden></button>
+          </div>
+          <p id="form-message" class="message" hidden></p>
+        </form>
+
+        <div class="panel">
+          <h3 data-i18n="settingsTitle"></h3>
+
+          <label class="field">
+            <span data-i18n="labelCount"></span>
+            <span class="range-row">
+              <input id="set-count" type="range" min="1" max="30" step="1" />
+              <output id="set-count-out"></output>
+            </span>
+          </label>
+
+          <label class="field">
+            <span data-i18n="labelWithin"></span>
+            <span class="range-row">
+              <input id="set-days" type="range" min="0" max="366" step="1" />
+              <output id="set-days-out"></output>
+            </span>
+          </label>
+          <p class="muted small" data-i18n="settingsHint"></p>
+
+          <label class="field">
+            <span data-i18n="labelWarn"></span>
+            <span class="range-row">
+              <input id="set-warn" type="range" min="0" max="60" step="1" />
+              <output id="set-warn-out"></output>
+            </span>
+          </label>
+          <p class="muted small" data-i18n="warnHint"></p>
+
+          <label class="field">
+            <span data-i18n="labelLanguage"></span>
+            <select id="set-language"></select>
+          </label>
+        </div>
+
+        <div class="panel">
+          <h3 data-i18n="bannerTitle"></h3>
+
+          <label class="field">
+            <span data-i18n="labelBannerText"></span>
+            <input id="set-banner" type="text" maxlength="16" placeholder="MARTIN" autocapitalize="characters" />
+          </label>
+          <p class="muted small" data-i18n="bannerHint"></p>
+
+          <label class="field">
+            <span data-i18n="labelSubtitle"></span>
+            <select id="set-subtitle">
+              <option value="carnival" data-i18n="subOpt_carnival"></option>
+              <option value="easter" data-i18n="subOpt_easter"></option>
+              <option value="christmaseve" data-i18n="subOpt_christmaseve"></option>
+              <option value="christmas" data-i18n="subOpt_christmas"></option>
+              <option value="newyear" data-i18n="subOpt_newyear"></option>
+              <option value="custom" data-i18n="subOpt_custom"></option>
+              <option value="none" data-i18n="subOpt_none"></option>
+            </select>
+          </label>
+
+          <label class="field" id="subtext-field" hidden>
+            <span data-i18n="labelCustomText"></span>
+            <input id="set-subtext" type="text" maxlength="80" />
+          </label>
+        </div>
+
+        <div class="panel">
+          <h3 data-i18n="remindersTitle"></h3>
+          <label class="check">
+            <input id="set-remind" type="checkbox" />
+            <span data-i18n="remindEnable"></span>
+          </label>
+          <label class="field">
+            <span data-i18n="remindAt"></span>
+            <select id="set-hour"></select>
+          </label>
+          <label class="field">
+            <span data-i18n="remindBefore"></span>
+            <input id="set-before" type="number" min="0" max="30" step="1" inputmode="numeric" />
+          </label>
+          <p class="muted small" data-i18n="remindNote"></p>
+          <p id="remind-message" class="message error" hidden></p>
+        </div>
+
+        <div class="panel">
+          <h3 data-i18n="importTitle"></h3>
+          <p class="muted small" data-i18n="importHelp"></p>
+          <label class="check">
+            <input id="import-replace" type="checkbox" />
+            <span data-i18n="importReplace"></span>
+          </label>
+          <label class="btn" for="import-file"><span data-i18n="importBtn"></span></label>
+          <input id="import-file" type="file" hidden />
+          <p id="import-message" class="message" hidden></p>
+        </div>
+
+        <h3 id="list-title"></h3>
+        <ul id="entry-list" class="entry-list"></ul>
+      </section>
+    </main>
+
+    <script src="i18n.js"></script>
+    <script src="lang/de.js"></script>
+    <script src="lang/en.js"></script>
+    <script src="lang/es.js"></script>
+    <script src="lang/fr.js"></script>
+    <script src="lang/it.js"></script>
+    <script src="lang/pt.js"></script>
+    <script src="lang/ru.js"></script>
+    <script src="lang/tr.js"></script>
+    <script src="lang/ar.js"></script>
+    <script src="lang/hi.js"></script>
+    <script src="lang/zh.js"></script>
+    <script src="lang/ja.js"></script>
+    <script src="logic.js"></script>
+    <script src="banner.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
