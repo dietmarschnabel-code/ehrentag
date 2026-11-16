@@ -74,6 +74,8 @@ The packages pull in WebKitGTK as a dependency. Afterwards you will find "Ehrent
 Download the `…_android.apk` file on your phone and open it. Android will ask you to allow installing apps from your
 browser or file manager once ("unknown sources"). Android 7.0 or newer is required.
 
+Version 1.0.1 is the first Tauri-based release of Ehrentag-Manager with Android support.
+
 ### Checksums
 
 Every release includes a `SHA256SUMS.txt`:
@@ -288,8 +290,8 @@ GitHub Actions does the work ([`.github/workflows/release.yml`](.github/workflow
 ```bash
 # 1. Bump the version in package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json, commit
 # 2. Create and push a tag
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.1
+git push origin v1.0.1
 ```
 
 The workflow runs the tests, builds the Windows installer, the `.deb` and `.rpm` and the Android APK, creates the
