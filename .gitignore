@@ -7,5 +7,5 @@ src-tauri/gen/
 gebdatei.dat
 gebdatei.dat.bak
 events.json
-src-tauri/package-lock.json
+package-lock.json
 src-tauri/Cargo.lock

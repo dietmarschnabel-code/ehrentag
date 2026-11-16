@@ -1,5 +1,5 @@
 [package]
-name = "ehrentag"
+name = "Ehrentag-Manager"
 version = "1.0.0"
 description = "Ehrentag-Manager: birthdays, name days and other dates worth remembering"
 authors = ["Dietmar Schnabel"]
