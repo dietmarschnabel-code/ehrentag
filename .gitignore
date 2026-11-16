@@ -1,11 +1,38 @@
+# ─── Dependencies and build output ───
 node_modules/
 target/
 dist/
-src-tauri/gen/
+src-tauri/gen/schemas/
 
-# Never commit personal data
-gebdatei.dat
-gebdatei.dat.bak
+# Android build output (the project in src-tauri/gen/android itself IS committed)
+src-tauri/gen/android/.gradle/
+src-tauri/gen/android/build/
+src-tauri/gen/android/app/build/
+src-tauri/gen/android/local.properties
+src-tauri/gen/android/.idea/
+
+# ─── Never commit personal data ───
+# current data file and everything the app writes next to it (.bak, .tmp, .corrupt.bak ...)
 events.json
+events.json.*
+settings.json
+# the old data file of earlier versions and its backups
+gebdatei.dat
+gebdatei.dat.*
+# calendar exports contain your dates, too
+*.ics
+
+# ─── Signing keys and secrets ───
+*.jks
+*.keystore
+keystore.properties
+.env
+
+# ─── Editors and operating systems ───
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
 package-lock.json
 src-tauri/Cargo.lock
