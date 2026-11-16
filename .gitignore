@@ -1,7 +1,11 @@
 node_modules/
 target/
 dist/
+src-tauri/gen/
 
 # Never commit personal data
 gebdatei.dat
 gebdatei.dat.bak
+events.json
+src-tauri/package-lock.json
+src-tauri/Cargo.lock

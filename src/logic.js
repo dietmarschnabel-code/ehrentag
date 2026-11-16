@@ -149,16 +149,16 @@ function validateForm(f, currentYear) {
 
   let year = 0;
   const y = f.year.trim();
-  if (f.kind === 'N') {
+  if (f.kind === 'nameday') {
     year = 0;
   } else if (y === '') {
-    if (f.kind !== 'S') return { error: 'errYearMissing' };
+    if (f.kind !== 'other') return { error: 'errYearMissing' };
   } else {
     if (!/^\d{4}$/.test(y)) return { error: 'errYearFormat' };
     year = parseInt(y, 10);
     if (year < 1000) return { error: 'errYearFormat' };
   }
-  if (year > currentYear && f.kind !== 'S') return { error: 'errYearFuture' };
+  if (year > currentYear && f.kind !== 'other') return { error: 'errYearFuture' };
 
   return { entry: { day, month, year, name, kind: f.kind } };
 }

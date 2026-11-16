@@ -60,8 +60,8 @@ r = L.nextReminder({ month: 11, day: 13 }, L.startOfDay(now), now, 0, 9);
 assert.deepStrictEqual(r.fire, new Date(2026, 10, 13, 9, 0));
 
 // validateForm
-const base = { name: 'Maria', kind: 'G', day: '24', month: '12', year: '1980' };
-assert.deepStrictEqual(L.validateForm(base, 2026).entry, { day: 24, month: 12, year: 1980, name: 'Maria', kind: 'G' });
+const base = { name: 'Maria', kind: 'birthday', day: '24', month: '12', year: '1980' };
+assert.deepStrictEqual(L.validateForm(base, 2026).entry, { day: 24, month: 12, year: 1980, name: 'Maria', kind: 'birthday' });
 assert.strictEqual(L.validateForm({ ...base, name: '  ' }, 2026).error, 'errName');
 assert.strictEqual(L.validateForm({ ...base, day: 'x' }, 2026).error, 'errDay');
 assert.strictEqual(L.validateForm({ ...base, month: '' }, 2026).error, 'errMonth');
@@ -69,10 +69,10 @@ assert.strictEqual(L.validateForm({ ...base, day: '31', month: '2' }, 2026).erro
 assert.strictEqual(L.validateForm({ ...base, year: '' }, 2026).error, 'errYearMissing');
 assert.strictEqual(L.validateForm({ ...base, year: '85' }, 2026).error, 'errYearFormat');
 assert.strictEqual(L.validateForm({ ...base, year: '2030' }, 2026).error, 'errYearFuture');
-assert.strictEqual(L.validateForm({ ...base, kind: 'N', year: '' }, 2026).entry.year, 0);
-assert.strictEqual(L.validateForm({ ...base, kind: 'N', year: '1999' }, 2026).entry.year, 0); // ignored for name days
-assert.strictEqual(L.validateForm({ ...base, kind: 'S', year: '' }, 2026).entry.year, 0);
-assert.strictEqual(L.validateForm({ ...base, kind: 'S', year: '2030' }, 2026).entry.year, 2030);
+assert.strictEqual(L.validateForm({ ...base, kind: 'nameday', year: '' }, 2026).entry.year, 0);
+assert.strictEqual(L.validateForm({ ...base, kind: 'nameday', year: '1999' }, 2026).entry.year, 0); // ignored for name days
+assert.strictEqual(L.validateForm({ ...base, kind: 'other', year: '' }, 2026).entry.year, 0);
+assert.strictEqual(L.validateForm({ ...base, kind: 'other', year: '2030' }, 2026).entry.year, 2030);
 
 // easterDate (known dates) and nextEventDate
 assert.deepStrictEqual(L.easterDate(2024), d(2024, 3, 31));

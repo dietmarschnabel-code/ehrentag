@@ -74,9 +74,11 @@ for (const f of ['main.js', 'index.html', 'logic.js']) {
   for (const m of text.matchAll(/data-i18n(?:-ph)?="([A-Za-z_]+)"/g)) used.add(m[1]);
   for (const m of text.matchAll(/error: '([A-Za-z]+)'/g)) used.add(m[1]);
 }
-for (const k of ['kindG', 'kindN', 'kindH', 'kindS', 'hintG', 'hintN', 'hintH', 'hintS', 'event_easter', 'event_christmaseve', 'event_christmas', 'event_newyear']) used.add(k);
-used.delete('kind'); used.delete('hint'); used.delete('event_');
+for (const kind of ['birthday', 'nameday', 'wedding', 'other']) { used.add('kind_' + kind); used.add('hint_' + kind); }
+for (const k of ['event_easter', 'event_christmaseve', 'event_christmas', 'event_newyear']) used.add(k);
+used.delete('kind_'); used.delete('hint_'); used.delete('event_');
 for (const k of used) assert(k in en, 'the code uses an unknown text key: ' + k);
 assert(!('suffixDays' in en), 'suffixDays was replaced by daysUnit');
+assert(!('importDone' in en), 'importDone was replaced by importResult');
 
 console.log(`i18n tests: ${LANGUAGES.length} languages x ${Object.keys(en).length} texts, all consistent`);

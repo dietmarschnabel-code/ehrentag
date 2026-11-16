@@ -47,7 +47,8 @@ body {
 h1 {
   margin: 12px 0 4px;
   text-align: center;
-  font-size: clamp(1.7rem, 6vw, 2.2rem);
+  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  text-wrap: balance; /* longer translated titles break evenly */
   background: linear-gradient(90deg, #ff6ec7, #ffbe50, #78dc78, #5ac8fa, #a855f7, #ff6ec7);
   background-size: 300% 100%;
   -webkit-background-clip: text;
@@ -135,12 +136,35 @@ h3 {
   color: var(--muted);
 }
 
-.card.kind-H .card-name {
+.card.kind-wedding .card-name {
   color: #5adcf0;
 }
 
-.card.kind-S .card-name {
+.card.kind-other .card-name {
   color: #ffd25a;
+}
+
+/* note shown once after the old gebdatei.dat was converted */
+.notice {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border: 1px solid #3d6fb0;
+  border-radius: var(--radius);
+  background: #14243d;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+textarea {
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #15102a;
+  color: var(--text);
+  font: 0.8rem/1.35 ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  direction: ltr;
 }
 
 /* dates that are closer than the configured warning distance: yellow instead of white */

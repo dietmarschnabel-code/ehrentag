@@ -11,9 +11,11 @@
     <main id="app">
       <!-- ───────────── Overview ───────────── -->
       <section id="view-overview">
+        <p id="migrated-note" class="notice" hidden></p>
+
         <canvas id="banner" aria-hidden="true"></canvas>
 
-        <h1 id="title">Ehrentag-Manager</h1>
+        <h1 id="title" data-i18n="appTitle">Ehrentag-Manager</h1>
         <p id="subtitle" class="subtitle"></p>
         <p id="today" class="today"></p>
 
@@ -159,6 +161,21 @@
           <p id="import-message" class="message" hidden></p>
         </div>
 
+        <div class="panel">
+          <h3 data-i18n="exportTitle"></h3>
+          <p class="muted small" data-i18n="exportHelp"></p>
+          <div class="row">
+            <button id="btn-export-ics" type="button" data-i18n="exportIcs"></button>
+            <button id="btn-export-json" type="button" data-i18n="exportJson"></button>
+          </div>
+          <p id="export-message" class="message" hidden></p>
+          <div id="export-text" hidden>
+            <p id="export-copy-hint" class="muted small"></p>
+            <textarea id="export-area" readonly rows="8"></textarea>
+            <button id="btn-export-copy" type="button" data-i18n="exportCopyBtn"></button>
+          </div>
+        </div>
+
         <h3 id="list-title"></h3>
         <ul id="entry-list" class="entry-list"></ul>
       </section>
@@ -178,6 +195,7 @@
     <script src="lang/zh.js"></script>
     <script src="lang/ja.js"></script>
     <script src="logic.js"></script>
+    <script src="exchange.js"></script>
     <script src="banner.js"></script>
     <script src="main.js"></script>
   </body>

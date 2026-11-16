@@ -4,7 +4,7 @@
 // Depends on i18n.js (texts), logic.js (pure date/validation helpers) and banner.js.
 // The backend (src-tauri/src/lib.rs) stores the data; this file talks to it via invoke().
 
-const KINDS = ['G', 'N', 'H', 'S'];
+const KINDS = Exchange.KINDS; // 'birthday', 'nameday', 'wedding', 'other'
 const isAndroid = /android/i.test(navigator.userAgent);
 
 function defaultSettings() {
@@ -29,6 +29,8 @@ const state = {
   editing: null, // index of the entry being edited
   confirmDelete: null, // index waiting for "Really delete"
   formMessage: null, // { error, text }
+  migration: null, // set when the old gebdatei.dat was converted to events.json at this start
+  exportText: '', // the exported text while it is shown for copying (keeps the CRLF line breaks)
 };
 
 const $ = (id) => document.getElementById(id);
@@ -46,9 +48,9 @@ function el(tag, cls, text) {
 // design preview) a small in-memory mock stands in for the Rust backend.
 const mock = {
   entries: [
-    { day: 24, month: 12, year: 1980, name: 'Maria Muster', kind: 'G' },
-    { day: 11, month: 11, year: 0, name: 'Martin Beispiel', kind: 'N' },
-    { day: 3, month: 6, year: 2001, name: 'Anna & Paul', kind: 'H' },
+    { id: 'demo-1', day: 24, month: 12, year: 1980, name: 'Maria Muster', kind: 'birthday' },
+    { id: 'demo-2', day: 11, month: 11, year: 0, name: 'Martin Beispiel', kind: 'nameday' },
+    { id: 'demo-3', day: 3, month: 6, year: 2001, name: 'Anna & Paul', kind: 'wedding' },
   ],
   settings: defaultSettings(),
 };
@@ -59,15 +61,17 @@ async function backend(cmd, args) {
   }
   switch (cmd) {
     case 'get_state':
-      return { entries: mock.entries, settings: mock.settings, data_path: '(browser preview)' };
+      return { entries: mock.entries, settings: mock.settings, data_path: '(browser preview)/events.json', migration: null };
     case 'save_entries':
-      mock.entries = args.entries.slice().sort((a, b) => a.month - b.month || a.day - b.day);
+      mock.entries = args.entries.map((e) => ({ ...e, id: e.id || Exchange.newId() })).sort((a, b) => a.month - b.month || a.day - b.day);
       return mock.entries;
     case 'save_settings':
       mock.settings = args.settings;
       return args.settings;
+    case 'parse_legacy':
+      return [];
     default:
-      throw 'no_entries';
+      throw 'not available in the browser preview';
   }
 }
 
@@ -131,10 +135,22 @@ function buildLanguageSelect() {
   });
 }
 
+/** The window title of the desktop app (there is no title bar on Android). */
+function setWindowTitle(title) {
+  try {
+    const w = window.__TAURI__ && window.__TAURI__.window;
+    if (w && w.getCurrentWindow) w.getCurrentWindow().setTitle(title).catch(() => {});
+  } catch (e) {
+    /* not available: keep the title from tauri.conf.json */
+  }
+}
+
 function applyI18n() {
   const info = langInfo();
   document.documentElement.lang = info.code;
   document.documentElement.dir = info.dir; // right-to-left for Arabic
+  document.title = t('appTitle');
+  setWindowTitle(t('appTitle'));
   document.querySelectorAll('[data-i18n]').forEach((n) => {
     n.textContent = t(n.dataset.i18n);
   });
@@ -145,18 +161,18 @@ function applyI18n() {
 
 // ───────────────────────────── Texts for entries ─────────────────────────────
 
-const kindLabel = (k) => t('kind' + k);
+const kindLabel = (k) => t('kind_' + k);
 const pad = (n) => String(n).padStart(2, '0');
 
 function kindText(e, years) {
   const ord = ordinal(lang(), years);
   switch (e.kind) {
-    case 'G':
+    case 'birthday':
       return e.year > 0 ? t('birthdayN', [ord]) : t('birthday');
-    case 'N':
+    case 'nameday':
       return t('nameDay');
-    case 'H':
-      return e.year > 0 ? t('weddingN', [ord]) : t('kindH');
+    case 'wedding':
+      return e.year > 0 ? t('weddingN', [ord]) : t('kind_wedding');
     default:
       return e.year > 0 ? t('otherN', [ord]) : t('otherPlain');
   }
@@ -169,7 +185,7 @@ function whenText(days) {
 }
 
 function displayName(e) {
-  return e.kind === 'N' ? firstNameUpper(e.name) : e.name;
+  return e.kind === 'nameday' ? firstNameUpper(e.name) : e.name;
 }
 
 // ───────────────────────────── Overview ─────────────────────────────
@@ -222,6 +238,10 @@ function renderOverview() {
   const moment = carnivalDay && now.getHours() === 11 && now.getMinutes() === 11;
   Banner.setConfetti(moment ? 400 : carnivalDay ? 200 : 90);
 
+  const migrated = $('migrated-note');
+  migrated.hidden = !state.migration;
+  if (state.migration) migrated.textContent = t('migratedNote', [state.migration.from_name, state.migration.backup_name]);
+
   Banner.setText(state.settings.banner_text);
   const sub = subtitleText(today, carnivalDay, moment);
   $('subtitle').textContent = sub;
@@ -265,11 +285,11 @@ function renderFormMessage() {
 }
 
 function updateYearHint() {
-  const kind = $('f-kind').value || 'G';
-  $('year-hint').textContent = t('yearLine', [t('hint' + kind)]);
+  const kind = $('f-kind').value || 'birthday';
+  $('year-hint').textContent = t('yearLine', [t('hint_' + kind)]);
   const year = $('f-year');
-  year.disabled = kind === 'N';
-  if (kind === 'N') year.value = '';
+  year.disabled = kind === 'nameday';
+  if (kind === 'nameday') year.value = '';
 }
 
 function clearForm() {
@@ -277,7 +297,7 @@ function clearForm() {
   $('f-day').value = '';
   $('f-month').value = '';
   $('f-year').value = '';
-  $('f-kind').value = 'G';
+  $('f-kind').value = 'birthday';
   state.editing = null;
   updateYearHint();
 }
@@ -334,7 +354,7 @@ function renderManage() {
   $('btn-cancel').hidden = !editing;
 
   const sel = $('f-kind');
-  const current = sel.value || 'G';
+  const current = sel.value || 'birthday';
   sel.replaceChildren(
     ...KINDS.map((k) => {
       const o = el('option', null, kindLabel(k));
@@ -422,8 +442,8 @@ async function submitForm(ev) {
 
   const list = state.entries.slice();
   const wasEdit = state.editing !== null && state.editing < list.length;
-  if (wasEdit) list[state.editing] = res.entry;
-  else list.push(res.entry);
+  if (wasEdit) list[state.editing] = { ...res.entry, id: list[state.editing].id };
+  else list.push({ ...res.entry, id: Exchange.newId() });
 
   try {
     state.entries = await backend('save_entries', { entries: list });
@@ -511,7 +531,7 @@ async function scheduleReminders() {
   }
 }
 
-// ───────────────────────────── Import ─────────────────────────────
+// ───────────────────────────── Import and export ─────────────────────────────
 
 function setImportMessage(error, text) {
   const m = $('import-message');
@@ -520,22 +540,120 @@ function setImportMessage(error, text) {
   m.className = 'message' + (error ? ' error' : '');
 }
 
+/**
+ * Imports a calendar file (.ics), an events.json backup or an old gebdatei.dat.
+ * The format is recognised from the content, not from the file name.
+ */
 async function importFile(ev) {
   const file = ev.target.files && ev.target.files[0];
   if (!file) return;
   try {
-    const buf = await file.arrayBuffer();
-    state.entries = await backend('import_bytes', {
-      bytes: Array.from(new Uint8Array(buf)),
-      replace: $('import-replace').checked,
-    });
-    setImportMessage(false, t('importDone'));
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let text = null;
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch (e) {
+      text = null; // not UTF-8: only the old DOS file can look like that
+    }
+    const format = text === null ? 'legacy' : Exchange.detectFormat(text);
+
+    let incoming;
+    let skipped = 0;
+    if (format === 'ics') ({ events: incoming, skipped } = Exchange.parseIcs(text));
+    else if (format === 'json') ({ events: incoming, skipped } = Exchange.parseJson(text));
+    else incoming = await backend('parse_legacy', { bytes: Array.from(bytes) });
+    if (incoming.length === 0) throw 'no_entries';
+
+    const merged = Exchange.mergeEntries(state.entries, incoming, $('import-replace').checked);
+    state.entries = await backend('save_entries', { entries: merged.entries });
+    setImportMessage(false, t('importResult', [merged.added, skipped + merged.skipped]));
     scheduleReminders();
     renderManage();
   } catch (e) {
-    setImportMessage(true, e === 'no_entries' ? t('importNone') : t('errSave', [String(e)]));
+    const unreadable = e === 'no_entries' || e instanceof SyntaxError || (e && e.message === 'bad_format');
+    setImportMessage(true, unreadable ? t('importNone') : t('errSave', [String(e)]));
   }
   ev.target.value = '';
+}
+
+function setExportMessage(error, text) {
+  const m = $('export-message');
+  m.hidden = !text;
+  m.textContent = text || '';
+  m.className = 'message' + (error ? ' error' : '');
+}
+
+/**
+ * Saves a text file: with the native "save as" dialog on desktop, through the share sheet on
+ * phones, otherwise the text is handed back so that it can be copied.
+ * Returns { status: 'saved' | 'shared' | 'cancelled' | 'text', where? }.
+ */
+async function saveTextFile(filename, mime, text) {
+  const dialog = window.__TAURI__ && window.__TAURI__.dialog;
+  if (dialog && typeof dialog.save === 'function') {
+    try {
+      const ext = filename.split('.').pop();
+      const path = await dialog.save({ defaultPath: filename, filters: [{ name: ext.toUpperCase(), extensions: [ext] }] });
+      if (!path) return { status: 'cancelled' };
+      await backend('write_text_file', { path, text });
+      return { status: 'saved', where: path };
+    } catch (e) {
+      console.error('save dialog', e); // e.g. not supported on this system: try the next way
+    }
+  }
+  try {
+    const file = new File([text], filename, { type: mime });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: filename });
+      return { status: 'shared' };
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return { status: 'cancelled' };
+    console.error('share', e);
+  }
+  return { status: 'text' };
+}
+
+async function exportAs(format) {
+  $('export-text').hidden = true;
+  if (state.entries.length === 0) {
+    setExportMessage(true, t('exportEmpty'));
+    return;
+  }
+  const labels = {};
+  KINDS.forEach((k) => {
+    labels[k] = kindLabel(k);
+  });
+  const isIcs = format === 'ics';
+  const text = isIcs ? Exchange.toIcs(state.entries, { labels, calendarName: t('appTitle') }) : Exchange.toJson(state.entries);
+  const filename = isIcs ? 'ehrentag.ics' : 'events.json';
+
+  const res = await saveTextFile(filename, isIcs ? 'text/calendar' : 'application/json', text);
+  if (res.status === 'saved') {
+    setExportMessage(false, t('exportDone', [res.where]));
+  } else if (res.status === 'shared') {
+    setExportMessage(false, t('exportShared'));
+  } else if (res.status === 'text') {
+    setExportMessage(false, '');
+    $('export-copy-hint').textContent = t('exportCopyHint', [filename]);
+    state.exportText = text;
+    $('export-area').value = text;
+    $('export-text').hidden = false;
+  } else {
+    setExportMessage(false, '');
+  }
+}
+
+async function copyExportText() {
+  const area = $('export-area');
+  try {
+    await navigator.clipboard.writeText(state.exportText || area.value);
+  } catch (e) {
+    area.focus();
+    area.select();
+    document.execCommand('copy');
+  }
+  setExportMessage(false, t('exportCopied'));
 }
 
 // ───────────────────────────── Navigation and start ─────────────────────────────
@@ -549,6 +667,8 @@ function show(view) {
   } else {
     state.formMessage = null;
     setImportMessage(false, '');
+    setExportMessage(false, '');
+    $('export-text').hidden = true;
     renderManage();
   }
   window.scrollTo(0, 0);
@@ -635,6 +755,13 @@ function bindEvents() {
   });
 
   $('import-file').addEventListener('change', importFile);
+  $('btn-export-ics').addEventListener('click', () => exportAs('ics'));
+  $('btn-export-json').addEventListener('click', () => exportAs('json'));
+  $('btn-export-copy').addEventListener('click', copyExportText);
+  $('migrated-note').addEventListener('click', () => {
+    state.migration = null;
+    $('migrated-note').hidden = true;
+  });
 
   // keep the overview fresh (day change, 11:11 moment)
   const refresh = () => {
@@ -653,6 +780,7 @@ async function init() {
     state.settings = { ...defaultSettings(), ...s.settings };
     if (!isSupportedLanguage(state.settings.language)) state.settings.language = '';
     state.dataPath = s.data_path;
+    state.migration = s.migration || null;
   } catch (e) {
     console.error('get_state', e);
   }

@@ -32,10 +32,14 @@ Turkish, Arabic, Hindi, Chinese (simplified) and Japanese.
 - **Editor:** add, change and delete entries (with a confirmation before deleting)
 - **Warning colour:** dates that are closer than a configurable number of days turn **yellow**
 - **Reminders on Android:** a notification a configurable number of days before, at a time of your choice
-- **12 languages** – follows your system language; can be changed in the editor (Arabic is shown right-to-left)
+- **12 languages** – follows your system language; can be changed in the editor (Arabic is shown right-to-left).
+  The app name is translated too ("Special Days Manager", "Gestor de días especiales", …).
 - **MARTIN** – bouncing rainbow pixel letters with confetti. On **11 November** it celebrates, and at **11:11** the confetti
   goes wild. The banner text and the message below it are configurable (see below).
-- **Import** of the `gebdatei.dat` file of the original Pascal program
+- **Calendar export and import (.ics):** take your dates into Google Calendar, Apple Calendar, Outlook and others, or
+  import birthdays from them
+- **Simple JSON data file** (`events.json`) and an automatic one-time conversion of the old `gebdatei.dat` of the
+  original Pascal program
 - Phone-friendly layout with large touch targets
 
 ## Installation
@@ -122,35 +126,66 @@ be reminded (`0` = on the day itself). The app asks for the notification permiss
 
 ## Where is my data?
 
+Your dates are stored in a small JSON file, `events.json`:
+
 | System | Data file |
 |---|---|
 | Android | the app's private storage (not visible to other apps) |
-| Windows | `%APPDATA%\ehrentag-manager\gebdatei.dat` |
-| Linux | `~/.local/share/ehrentag-manager/gebdatei.dat` |
+| Windows | `%APPDATA%\ehrentag-manager\events.json` |
+| Linux | `~/.local/share/ehrentag-manager/events.json` |
 
-On desktop you can override this: the environment variable `EHRENTAG_FILE` (full path) wins, and a `gebdatei.dat`
-in the current directory is used if present (as with the old Pascal program). The settings are stored next to the
-data file as `settings.json`. The first time an existing file is saved, a one-time backup `gebdatei.dat.bak` is created.
-Uninstalling keeps your data.
+On desktop you can override this: the environment variable `EHRENTAG_FILE` (full path of the file) wins, and an
+`events.json` in the current directory is used if present. The settings are stored next to it as `settings.json`.
+The editor shows the current path. Uninstalling keeps your data.
 
-### Migrating from the Pascal version
+### The old gebdatei.dat is converted automatically
 
-Open the editor and use **Import**: choose your old `gebdatei.dat` (works on the phone too). Tick *Replace existing
-entries* if you want to start from the imported file instead of merging.
+Earlier versions (and the original Pascal program) used a text file called `gebdatei.dat`. When the app starts and
+there is **no `events.json` yet** but a `gebdatei.dat` next to it, in the current directory or at the path in
+`EHRENTAG_DATEI`, the dates are converted to `events.json` **once**. The old file is renamed to `gebdatei.dat.bak` (or
+`.bak2`, … if that name is taken), is not used any more, and a note on the overview tells you what happened. An existing
+`events.json` is never overwritten.
+
+You can also import an old file by hand later (see below).
 
 ### File format
 
-Five text lines per entry, sorted by month and day:
-
+```json
+{
+  "version": 1,
+  "events": [
+    { "id": "5d9c…", "kind": "birthday", "name": "Maria Muster", "month": 12, "day": 24, "year": 1980 },
+    { "id": "a41f…", "kind": "nameday",  "name": "Martin",       "month": 11, "day": 11, "year": 0 }
+  ]
+}
 ```
-24            <- day
-12            <- month
-1980          <- year (0 = not given)
-Maria Muster  <- name
-G             <- G = birthday, N = name day, H = wedding anniversary, S = other special day
-```
 
-The file is saved as UTF-8. Old DOS files with umlauts are recognised when importing.
+- `kind` is `birthday`, `nameday`, `wedding` (wedding anniversary) or `other` (any other special day)
+- `year` is `0` when it is not given (name days never have one)
+- every date repeats every year; `id` identifies an entry (it is the UID in calendar files)
+- the file is written as UTF-8 and replaced atomically; a file that cannot be read is kept as `events.json.corrupt.bak`
+  instead of being overwritten
+
+## Calendar files (.ics) and backups
+
+Both are in the editor, under **Export** and **Import**.
+
+**Export** creates either a calendar file (`ehrentag.ics`) or a backup (`events.json`). On desktop a "Save as" dialog
+opens; on a phone the share sheet is used where available; otherwise the text is shown so that you can copy it into a
+file. In the calendar file every date is an all-day event that **repeats every year** (`RRULE:FREQ=YEARLY`), titled with
+its type and name, for example "Birthday: Maria Muster". A 29 February repeats on the last day of February. Where the
+year is unknown the current year is used as the start and the entry is marked, so that importing it again restores it.
+
+**Import** takes a calendar file (`.ics`), an `events.json` backup or an old `gebdatei.dat`. The format is recognised
+from the content. Imported dates are added to your existing ones; dates that are already there (same entry, or same
+content) are skipped, so importing the same file twice does nothing. Tick *Replace existing entries* to start from the
+imported file instead.
+
+- From other calendars only events that **repeat every year** are taken over (birthdays, anniversaries …). Meetings and
+  other one-off or differently repeating events are skipped and counted in the result.
+- The type is guessed from the categories and the title (for example "Birthday", "Geburtstag", "Cumpleaños",
+  "Hochzeitstag"); anything else becomes *Other special day*. Dates exported by this app keep their exact type.
+- A year of 1604 or earlier (used by Apple for "year unknown") is read as "no year".
 
 ## Building from source
 
@@ -171,6 +206,20 @@ npm run tauri build        # build the installers for your system
 
 The interface (`src/`) is plain HTML, CSS and JavaScript – there is no frontend build step. You can also open
 `src/index.html` in any browser for a quick design preview; a small in-memory mock replaces the Rust backend there.
+
+### The app icon on Linux
+
+The installed `.deb` / `.rpm` packages show the app icon everywhere. A build run from the source tree
+(`npm run tauri dev`) has no `.desktop` file, and on Wayland and GNOME the icon of a window comes from that file – a
+program cannot set it itself. The window then shows a generic icon. To give your development build its icon:
+
+```bash
+scripts/install-dev-desktop-entry.sh            # then restart the app (use "release" for a release build)
+scripts/install-dev-desktop-entry.sh remove     # undo
+```
+
+To check whether this is the cause, start the app once on X11 (`GDK_BACKEND=x11 npm run tauri dev`): if the icon shows
+there, the cause is the missing `.desktop` file.
 
 ### Android
 
@@ -201,7 +250,8 @@ npm run tauri android build -- --apk          # release APK (unsigned, see below
 ```bash
 node tests/logic.test.js                          # date logic and form validation
 node tests/i18n.test.js                           # all translations are complete and consistent
-cargo test --manifest-path src-tauri/Cargo.toml   # data file parsing and settings
+node tests/exchange.test.js                       # events.json, calendar file export/import and merging
+cargo test --manifest-path src-tauri/Cargo.toml   # data file, conversion of the old file, settings
 ```
 
 ## Languages and translations
@@ -221,7 +271,8 @@ The translations are not professionally reviewed – corrections by native speak
 4. Add a case to `ordinal()` in `src/logic.js` if "46th birthday" is written differently in that language.
 5. Run `node tests/i18n.test.js`: it reports missing texts, missing plural forms and wrong placeholders.
 
-The Windows installer itself currently offers English and German.
+The Windows installer itself currently offers English and German, and the product name that Windows, the Start menu and
+the Linux package managers show stays "Ehrentag-Manager" (the name inside the app is translated).
 ## Adding a special day to the countdown choices
 
 1. Add the day to `EVENTS` in `src/logic.js` (a function returning its date for a given year, e.g. Pentecost).
@@ -260,9 +311,10 @@ Use the same password for the keystore and the key. Then add three **repository 
 ## Project layout
 
 ```
-src/                 user interface: index.html, style.css, main.js, logic.js, banner.js, i18n.js
+src/                 user interface: index.html, style.css, main.js, logic.js, exchange.js, banner.js, i18n.js
 src/lang/            one translation file per language
-src-tauri/src/lib.rs Rust backend: data file, settings, import
+scripts/             helper to install a desktop entry (icon) for development builds on Linux
+src-tauri/src/lib.rs Rust backend: data file (events.json), conversion of the old file, settings
 src-tauri/           Tauri configuration, icons, capabilities
 tests/               JavaScript unit tests
 ```
