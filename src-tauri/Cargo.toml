@@ -1,4 +1,8 @@
 [package]
+# Must be identical to "productName" in tauri.conf.json (and "name" in package.json): on Linux a window
+# announces itself under the name of the program, and the desktop finds the icon through the .desktop file that
+# the packages install under the product name. A different name shows a generic icon (scripts/bump-version.js --check
+# tests this).
 name = "Ehrentag-Manager"
 version = "1.0.1"
 description = "Ehrentag-Manager: birthdays, name days and other dates worth remembering"

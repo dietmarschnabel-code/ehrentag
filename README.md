@@ -74,8 +74,6 @@ The packages pull in WebKitGTK as a dependency. Afterwards you will find "Ehrent
 Download the `…_android.apk` file on your phone and open it. Android will ask you to allow installing apps from your
 browser or file manager once ("unknown sources"). Android 7.0 or newer is required.
 
-Version 1.0.1 is the first Tauri-based release of Ehrentag-Manager with Android support.
-
 ### Checksums
 
 Every release includes a `SHA256SUMS.txt`:
@@ -211,17 +209,25 @@ The interface (`src/`) is plain HTML, CSS and JavaScript – there is no fronten
 
 ### The app icon on Linux
 
-The installed `.deb` / `.rpm` packages show the app icon everywhere. A build run from the source tree
-(`npm run tauri dev`) has no `.desktop` file, and on Wayland and GNOME the icon of a window comes from that file – a
-program cannot set it itself. The window then shows a generic icon. To give your development build its icon:
+On Wayland (and in GNOME and KDE in general) a program cannot set the icon of its window. The desktop takes the
+program's name (`app_id`) and looks for an installed `.desktop` file with that name, and the icon comes from there.
+So the name of the program must be the same as the name of the `.desktop` file that the packages install. The
+packages name that file after `productName`, so **`name` in `src-tauri/Cargo.toml`, `name` in `package.json` and
+`productName` in `src-tauri/tauri.conf.json` are all `Ehrentag-Manager`**. If one of them differs, the window shows a
+generic icon (an orange letter in some desktops). `node scripts/bump-version.js --check` verifies this.
+
+The installed `.deb` / `.rpm` packages then show the icon everywhere. A build run from the source tree
+(`npm run tauri dev`) has no installed `.desktop` file. To give your development build its icon:
 
 ```bash
 scripts/install-dev-desktop-entry.sh            # then restart the app (use "release" for a release build)
 scripts/install-dev-desktop-entry.sh remove     # undo
 ```
 
-To check whether this is the cause, start the app once on X11 (`GDK_BACKEND=x11 npm run tauri dev`): if the icon shows
-there, the cause is the missing `.desktop` file.
+To see which name a window announces (its `app_id`), use your desktop's window inspector: GNOME "Looking Glass"
+(Alt+F2, `lg`, tab *Windows*), `hyprctl clients` on Hyprland, `swaymsg -t get_tree` on sway, or the *Detect Window
+Properties* button in the KDE window rules. It has to match the name of the installed `.desktop` file
+(`Ehrentag-Manager.desktop`).
 
 ### Android
 
@@ -239,6 +245,9 @@ Android Studio (the `jbr` folder in its installation directory) and add the line
 ```bash
 export JAVA_HOME=/path/to/android-studio/jbr
 ```
+
+The application id of the Android app is `com.dietmarsl.code.ehrentag` (`identifier` in `tauri.conf.json`). It is built
+into the Android project, so after changing it delete `src-tauri/gen/android` and run `android init` again.
 
 ```bash
 npm run tauri android init                    # once: creates src-tauri/gen/android (commit it)
@@ -288,14 +297,25 @@ the Linux package managers show stays "Ehrentag-Manager" (the name inside the ap
 GitHub Actions does the work ([`.github/workflows/release.yml`](.github/workflows/release.yml)):
 
 ```bash
-# 1. Bump the version in package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json, commit
-# 2. Create and push a tag
-git tag v1.0.1
-git push origin v1.0.1
+# 1. Set the version in package.json, src-tauri/Cargo.toml and src-tauri/tauri.conf.json at once
+node scripts/bump-version.js 1.0.2
+# 2. Update CHANGELOG.md, commit, create and push a tag
+git commit -am "Release 1.0.2"
+git tag v1.0.2
+git push origin main v1.0.2
 ```
+
+The workflow refuses a tag that does not match the version in the files.
 
 The workflow runs the tests, builds the Windows installer, the `.deb` and `.rpm` and the Android APK, creates the
 checksums and publishes everything as a GitHub release.
+
+### Google Play
+
+Google Play does not accept APK files, only signed Android App Bundles (`.aab`). The workflow builds one, and
+`scripts/build-android-release.sh` builds the same on your computer. The complete guide – upload key, required checks,
+store listing, privacy policy, test tracks – is in [docs/PLAY_STORE.md](docs/PLAY_STORE.md). The listing texts,
+graphics and screenshots are in [`store/`](store/), the privacy policy is [PRIVACY.md](PRIVACY.md).
 
 ### Signing the Android APK (one-time setup)
 
@@ -315,6 +335,10 @@ Use the same password for the keystore and the key. Then add three **repository 
 ```
 src/                 user interface: index.html, style.css, main.js, logic.js, exchange.js, banner.js, i18n.js
 src/lang/            one translation file per language
+store/               Google Play listing texts, icon, feature graphic and screenshots
+docs/PLAY_STORE.md   step-by-step guide for publishing on Google Play
+PRIVACY.md           privacy policy (link it in Play Console)
+CHANGELOG.md         what changed in each version
 scripts/             helper to install a desktop entry (icon) for development builds on Linux
 src-tauri/src/lib.rs Rust backend: data file (events.json), conversion of the old file, settings
 src-tauri/           Tauri configuration, icons, capabilities

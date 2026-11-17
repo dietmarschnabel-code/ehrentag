@@ -34,5 +34,3 @@ keystore.properties
 *.swp
 .DS_Store
 Thumbs.db
-package-lock.json
-src-tauri/Cargo.lock
