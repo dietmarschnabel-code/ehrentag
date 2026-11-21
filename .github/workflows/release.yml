@@ -99,6 +99,9 @@ jobs:
           distribution: temurin
           java-version: "21"   # same major version as the JBR bundled in current Android Studio
       - uses: android-actions/setup-android@v3
+        with:
+          # The action's default package "tools" no longer exists and makes sdkmanager fail
+          packages: platform-tools
       - name: Install newest SDK platform, build-tools and NDK ${{ env.NDK_MAJOR }}
         run: |
           set -euo pipefail
