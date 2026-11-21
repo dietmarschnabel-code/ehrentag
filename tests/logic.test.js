@@ -74,17 +74,11 @@ assert.strictEqual(L.validateForm({ ...base, kind: 'nameday', year: '1999' }, 20
 assert.strictEqual(L.validateForm({ ...base, kind: 'other', year: '' }, 2026).entry.year, 0);
 assert.strictEqual(L.validateForm({ ...base, kind: 'other', year: '2030' }, 2026).entry.year, 2030);
 
-// easterDate (known dates) and nextEventDate
+// easterDate (known dates; the other special days are tested in holidays.test.js)
 assert.deepStrictEqual(L.easterDate(2024), d(2024, 3, 31));
 assert.deepStrictEqual(L.easterDate(2025), d(2025, 4, 20));
 assert.deepStrictEqual(L.easterDate(2026), d(2026, 4, 5));
 assert.deepStrictEqual(L.easterDate(2027), d(2027, 3, 28));
 assert.deepStrictEqual(L.easterDate(2038), d(2038, 4, 25));
-assert.deepStrictEqual(L.nextEventDate('easter', d(2026, 11, 13)), d(2027, 3, 28));
-assert.deepStrictEqual(L.nextEventDate('easter', d(2026, 4, 5)), d(2026, 4, 5)); // on the day itself
-assert.deepStrictEqual(L.nextEventDate('christmas', d(2026, 11, 13)), d(2026, 12, 25));
-assert.deepStrictEqual(L.nextEventDate('christmaseve', d(2026, 12, 25)), d(2027, 12, 24));
-assert.deepStrictEqual(L.nextEventDate('newyear', d(2026, 11, 13)), d(2027, 1, 1));
-assert.deepStrictEqual(Object.keys(L.EVENTS).sort(), ['christmas', 'christmaseve', 'easter', 'newyear']);
 
 console.log('logic tests: all passed');

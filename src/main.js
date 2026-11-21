@@ -19,6 +19,9 @@ function defaultSettings() {
     banner_text: 'MARTIN',
     subtitle_mode: 'carnival',
     subtitle_text: '',
+    traditions: [],
+    show_holidays: false,
+    holiday_count: 6,
   };
 }
 
@@ -201,24 +204,34 @@ function makeCard(date, e, today) {
   return card;
 }
 
+const LEGACY_SUBTITLE_MODES = ['easter', 'christmaseve', 'christmas', 'newyear']; // names of earlier versions
+
+/** First letter in capitals (names such as "le Mardi gras" start with an article inside the texts). */
+const cap = (text) => text.charAt(0).toLocaleUpperCase(langInfo().locale) + text.slice(1);
+
+/** "Easter in 12 days" / "Tomorrow is Easter!" for one special day; '' if its date is not known. */
+function countdownMessage(id, today) {
+  const date = Holidays.next(id, today);
+  if (!date) return '';
+  const days = daysBetween(today, date);
+  const name = t('event_' + id);
+  if (days === 0) return t('eventToday', [name]);
+  if (days === 1) return t('eventTomorrow', [name]);
+  return t('eventDays', [days, name]);
+}
+
 /** The line below the banner, depending on the chosen message. */
 function subtitleText(today, carnivalDay, moment) {
   const s = state.settings;
-  switch (s.subtitle_mode) {
-    case 'none':
-      return '';
-    case 'custom':
-      return s.subtitle_text;
-    case 'easter':
-    case 'christmaseve':
-    case 'christmas':
-    case 'newyear': {
-      const days = daysBetween(today, nextEventDate(s.subtitle_mode, today));
-      const name = t('event_' + s.subtitle_mode);
-      if (days === 0) return t('eventToday', [name]);
-      if (days === 1) return t('eventTomorrow', [name]);
-      return t('eventDays', [days, name]);
-    }
+  const mode = s.subtitle_mode;
+  if (mode === 'none') return '';
+  if (mode === 'custom') return s.subtitle_text;
+  if (mode === 'next') {
+    const up = Holidays.upcoming(s.traditions, today, 1);
+    return up.length ? countdownMessage(up[0].id, today) : t('nextNone');
+  }
+  if (mode.startsWith('event:') && Holidays.byId[mode.slice(6)]) return countdownMessage(mode.slice(6), today);
+  switch (mode) {
     default: {
       // carnival season starts on 11 Nov at 11:11
       if (moment) return t('subMoment');
@@ -229,6 +242,16 @@ function subtitleText(today, carnivalDay, moment) {
       return t('subCountdown', [days === 1 ? t('daysOne') : t('daysMany', [days])]);
     }
   }
+}
+
+function makeHolidayCard(x, today) {
+  const days = daysBetween(today, x.date);
+  const card = el('div', 'card holiday' + (days === 0 ? ' is-today' : ''));
+  const top = el('div', 'card-top');
+  top.append(el('span', 'card-name', cap(t('event_' + x.id))), el('span', 'card-when', whenText(days)));
+  const approx = x.event.approx ? ' · ' + t('approx') : '';
+  card.append(top, el('div', 'card-line', fmtDate(x.date) + ' · ' + t('trad_' + x.event.tradition) + approx));
+  return card;
 }
 
 function renderOverview() {
@@ -254,16 +277,28 @@ function renderOverview() {
   if (within > 0) upcoming = upcoming.filter((x) => daysBetween(today, x.date) <= within);
   upcoming = upcoming.slice(0, state.settings.count);
 
+  // the special days of the chosen traditions are added to the list (they do not use up the number of dates);
+  // the next day of every chosen tradition is always among them
+  let holidays = [];
+  if (state.settings.show_holidays && state.settings.traditions.length) {
+    holidays = Holidays.upcomingBalanced(state.settings.traditions, today, state.settings.holiday_count);
+    if (within > 0) holidays = holidays.filter((x) => daysBetween(today, x.date) <= within);
+  }
+  const items = [
+    ...upcoming.map((x) => ({ date: x.date, make: () => makeCard(x.date, x.e, today) })),
+    ...holidays.map((x) => ({ date: x.date, make: () => makeHolidayCard(x, today) })),
+  ].sort((a, b) => a.date - b.date);
+
   const cards = $('cards');
-  cards.replaceChildren(...upcoming.map((x) => makeCard(x.date, x.e, today)));
+  cards.replaceChildren(...items.map((i) => i.make()));
 
   const heading = $('upcoming-heading');
   const note = $('overview-note');
-  heading.hidden = upcoming.length === 0;
+  heading.hidden = items.length === 0;
   heading.textContent = t('upcoming');
-  note.hidden = upcoming.length > 0;
+  note.hidden = items.length > 0;
   if (state.entries.length === 0) note.textContent = t('noEntries');
-  else if (upcoming.length === 0) note.textContent = t('noneInWindow', [within]);
+  else if (items.length === 0) note.textContent = t('noneInWindow', [within]);
 }
 
 // ───────────────────────────── Manage view ─────────────────────────────
@@ -345,6 +380,58 @@ function renderList() {
   });
 }
 
+/** The choices for the message below the banner: a few general ones, then one countdown per special day. */
+function buildSubtitleSelect() {
+  const sel = $('set-subtitle');
+  const option = (value, text) => {
+    const o = el('option', null, text);
+    o.value = value;
+    return o;
+  };
+  sel.replaceChildren();
+  const other = el('optgroup');
+  other.label = t('subGroupOther');
+  other.append(option('carnival', t('subOpt_carnival')), option('next', t('subOpt_next')), option('custom', t('subOpt_custom')), option('none', t('subOpt_none')));
+  sel.append(other);
+  for (const tradition of Holidays.TRADITIONS) {
+    const group = el('optgroup');
+    group.label = t('trad_' + tradition);
+    for (const ev of Holidays.EVENTS) {
+      if (ev.tradition === tradition) group.append(option('event:' + ev.id, t('countdownTo', [cap(t('event_' + ev.id))])));
+    }
+    sel.append(group);
+  }
+  sel.value = state.settings.subtitle_mode;
+}
+
+/** One checkbox per tradition. */
+function buildTraditions() {
+  const box = $('traditions');
+  box.replaceChildren();
+  for (const tradition of Holidays.TRADITIONS) {
+    const label = el('label', 'check');
+    const input = el('input');
+    input.type = 'checkbox';
+    input.checked = state.settings.traditions.includes(tradition);
+    input.addEventListener('change', () => {
+      const chosen = new Set(state.settings.traditions);
+      if (input.checked) chosen.add(tradition);
+      else chosen.delete(tradition);
+      state.settings.traditions = Holidays.TRADITIONS.filter((x) => chosen.has(x)); // always in the same order
+      $('hindu-note').hidden = !chosen.has('hindu');
+      persistSettings();
+    });
+    label.append(input, el('span', null, t('trad_' + tradition)));
+    box.append(label);
+  }
+  $('set-showholidays').checked = state.settings.show_holidays;
+  $('set-hcount').value = state.settings.holiday_count;
+  $('set-hcount-out').textContent = state.settings.holiday_count;
+  const note = $('hindu-note');
+  note.textContent = t('hinduNote', [Holidays.HINDU_DATA_THROUGH]);
+  note.hidden = !state.settings.traditions.includes('hindu');
+}
+
 function renderManage() {
   $('file-label').textContent = t('fileLabel', [state.dataPath]);
 
@@ -386,7 +473,8 @@ function renderManage() {
   $('set-warn').value = s.warn_days;
   $('set-warn-out').textContent = t('daysUnit', [s.warn_days]);
   $('set-banner').value = s.banner_text;
-  $('set-subtitle').value = s.subtitle_mode;
+  buildSubtitleSelect();
+  buildTraditions();
   $('set-subtext').value = s.subtitle_text;
   $('subtext-field').hidden = s.subtitle_mode !== 'custom';
 
@@ -459,13 +547,35 @@ async function submitForm(ev) {
 
 // ───────────────────────────── Settings ─────────────────────────────
 
-async function persistSettings() {
-  try {
-    const saved = await backend('save_settings', { settings: state.settings });
-    state.settings = { ...state.settings, ...saved };
-  } catch (e) {
-    console.error('save_settings', e);
+// Settings are saved one request at a time, and always the newest state. Several changes in quick succession
+// (for example two traditions ticked one after the other) must not be written in parallel: a slower, older
+// request could then overwrite the newer one, and the answer of an old request must not replace newer choices.
+let settingsSaving = null;
+let settingsPending = false;
+
+function persistSettings() {
+  settingsPending = true;
+  if (!settingsSaving) {
+    settingsSaving = flushSettings().finally(() => {
+      settingsSaving = null;
+    });
   }
+  return settingsSaving;
+}
+
+async function flushSettings() {
+  let saved = null;
+  while (settingsPending) {
+    settingsPending = false;
+    try {
+      saved = await backend('save_settings', { settings: { ...state.settings } });
+    } catch (e) {
+      console.error('save_settings', e);
+      saved = null;
+    }
+  }
+  // nothing changed in the meantime: take over the values as the backend cleaned them (limits, shapes)
+  if (saved) state.settings = { ...state.settings, ...saved };
   scheduleReminders();
 }
 
@@ -674,12 +784,26 @@ function show(view) {
   window.scrollTo(0, 0);
 }
 
+function leaveManage() {
+  clearForm();
+  state.confirmDelete = null;
+  show('overview');
+}
+
 function bindEvents() {
-  $('btn-manage').addEventListener('click', () => show('manage'));
+  // The Android back button (and the browser's) walks back through the history: opening the editor adds one
+  // step, so that "back" in the editor returns to the overview, exactly like the button at the top. In the
+  // overview there is no step left, so "back" leaves the app.
+  $('btn-manage').addEventListener('click', () => {
+    history.pushState({ view: 'manage' }, '');
+    show('manage');
+  });
   $('btn-back').addEventListener('click', () => {
-    clearForm();
-    state.confirmDelete = null;
-    show('overview');
+    if (history.state && history.state.view === 'manage') history.back(); // ends in the popstate handler below
+    else leaveManage();
+  });
+  window.addEventListener('popstate', () => {
+    if (!$('view-manage').hidden) leaveManage();
   });
   $('btn-cancel').addEventListener('click', () => {
     clearForm();
@@ -723,6 +847,17 @@ function bindEvents() {
   $('set-subtitle').addEventListener('change', (ev) => {
     state.settings.subtitle_mode = ev.target.value;
     $('subtext-field').hidden = ev.target.value !== 'custom';
+    persistSettings();
+  });
+  $('set-hcount').addEventListener('input', (ev) => {
+    $('set-hcount-out').textContent = ev.target.value;
+  });
+  $('set-hcount').addEventListener('change', (ev) => {
+    state.settings.holiday_count = parseInt(ev.target.value, 10);
+    persistSettings();
+  });
+  $('set-showholidays').addEventListener('change', (ev) => {
+    state.settings.show_holidays = ev.target.checked;
     persistSettings();
   });
   $('set-subtext').addEventListener('change', (ev) => {
@@ -779,6 +914,7 @@ async function init() {
     state.entries = s.entries;
     state.settings = { ...defaultSettings(), ...s.settings };
     if (!isSupportedLanguage(state.settings.language)) state.settings.language = '';
+    if (LEGACY_SUBTITLE_MODES.includes(state.settings.subtitle_mode)) state.settings.subtitle_mode = 'event:' + state.settings.subtitle_mode;
     state.dataPath = s.data_path;
     state.migration = s.migration || null;
   } catch (e) {

@@ -11,7 +11,7 @@ Ehrentag-Manager
 
 Geburtstage, Namenstage und Jahrestage nie mehr vergessen – mit Erinnerung.
 
-## Full description (1321/4000)
+## Full description (1472/4000)
 
 Der Ehrentag-Manager hält Geburtstage, Namenstage, Hochzeitstage und andere besondere Tage übersichtlich an einem Ort fest – und zeigt dir, was als Nächstes ansteht.
 
@@ -22,6 +22,7 @@ DAS KANN DIE APP
 • Ein einfacher Editor zum Hinzufügen, Ändern und Löschen
 • Export als Kalenderdatei (.ics) für Google Kalender, Apple Kalender, Outlook und andere, und Import von Geburtstagen aus Kalendern
 • Sicherung und Wiederherstellung mit einer einfachen JSON-Datei
+• Besondere Tage vieler Traditionen – christlich, islamisch, jüdisch, hinduistisch, ostasiatisch und persisch – zum Herunterzählen und in deiner Liste
 • 12 Sprachen: Deutsch, Englisch, Spanisch, Französisch, Italienisch, Portugiesisch, Russisch, Türkisch, Arabisch, Hindi, Chinesisch und Japanisch
 • Ein verspielter, animierter Banner – standardmäßig "MARTIN", der den Faschingsbeginn am 11.11. um 11:11 Uhr feiert. Text und Meldung darunter lassen sich ändern: Countdown bis Ostern, Weihnachten, Neujahr oder ein eigener Text
 

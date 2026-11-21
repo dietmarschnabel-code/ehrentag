@@ -98,20 +98,40 @@ struct Settings {
     banner_text: String,     // the big pixel text, default "MARTIN" (max. 16 characters)
     subtitle_mode: String,   // what is shown below the banner, see SUBTITLE_MODES
     subtitle_text: String,   // used when subtitle_mode is "custom"
+    traditions: Vec<String>, // chosen traditions whose special days are shown (ids from src/holidays.js)
+    show_holidays: bool,     // also show the next special days in the overview list
+    holiday_count: u32,      // how many special days the list shows (1..=20)
 }
 
 const DEFAULT_BANNER: &str = "MARTIN";
 const BANNER_MAX_CHARS: usize = 16;
 const SUBTITLE_TEXT_MAX_CHARS: usize = 80;
-const SUBTITLE_MODES: [&str; 7] = [
+/// What can be shown below the banner: these names, or "event:<id>" for a countdown to one special day.
+/// ("easter", "christmaseve", "christmas" and "newyear" are the names of earlier versions; the
+/// interface turns them into "event:easter" and so on.)
+const SUBTITLE_MODES: [&str; 8] = [
     "carnival",
+    "custom",
+    "none",
+    "next",
     "easter",
     "christmaseve",
     "christmas",
     "newyear",
-    "custom",
-    "none",
 ];
+const TRADITIONS_MAX: usize = 16;
+
+/// Only the shape of an id is checked here; which ids exist is decided by the interface (src/holidays.js).
+fn valid_id_shape(id: &str, min: usize, max: usize) -> bool {
+    (min..=max).contains(&id.len()) && id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit())
+}
+
+fn valid_subtitle_mode(mode: &str) -> bool {
+    SUBTITLE_MODES.contains(&mode)
+        || mode
+            .strip_prefix("event:")
+            .map_or(false, |id| valid_id_shape(id, 1, 30))
+}
 
 impl Default for Settings {
     fn default() -> Self {
@@ -126,6 +146,9 @@ impl Default for Settings {
             banner_text: DEFAULT_BANNER.to_string(),
             subtitle_mode: "carnival".to_string(),
             subtitle_text: String::new(),
+            traditions: Vec::new(),
+            show_holidays: false,
+            holiday_count: 6,
         }
     }
 }
@@ -134,6 +157,7 @@ impl Settings {
     fn sanitized(mut self) -> Self {
         self.count = self.count.clamp(1, 30);
         self.days_ahead = self.days_ahead.min(366);
+        self.holiday_count = self.holiday_count.clamp(1, 20);
         self.remind_hour = self.remind_hour.min(23);
         self.remind_days_before = self.remind_days_before.min(30);
         self.warn_days = self.warn_days.min(366);
@@ -143,9 +167,16 @@ impl Settings {
         } else {
             banner
         };
-        if !SUBTITLE_MODES.contains(&self.subtitle_mode.as_str()) {
+        if !valid_subtitle_mode(&self.subtitle_mode) {
             self.subtitle_mode = "carnival".to_string();
         }
+        let mut seen: Vec<String> = Vec::new();
+        for t in self.traditions.drain(..) {
+            if valid_id_shape(&t, 2, 20) && !seen.contains(&t) && seen.len() < TRADITIONS_MAX {
+                seen.push(t);
+            }
+        }
+        self.traditions = seen;
         self.subtitle_text = self
             .subtitle_text
             .trim()
@@ -703,6 +734,15 @@ mod tests {
             banner_text: "   ".into(),
             subtitle_mode: "bogus".into(),
             subtitle_text: "x".repeat(200),
+            traditions: vec![
+                "Islamic".into(),
+                "islamic".into(),
+                "islamic".into(),
+                "x".into(),
+                "western".into(),
+            ],
+            show_holidays: true,
+            holiday_count: 999,
         }
         .sanitized();
         assert_eq!((s.count, s.days_ahead, s.remind_hour, s.remind_days_before), (30, 366, 23, 30));
@@ -711,6 +751,32 @@ mod tests {
         assert_eq!(s.banner_text, "MARTIN");
         assert_eq!(s.subtitle_mode, "carnival");
         assert_eq!(s.subtitle_text.chars().count(), 80);
+        // wrong shape and duplicates are dropped, the order is kept
+        assert_eq!(s.traditions, vec!["islamic".to_string(), "western".to_string()]);
+        assert!(s.show_holidays);
+        assert_eq!(s.holiday_count, 20);
+    }
+
+    #[test]
+    fn subtitle_modes() {
+        for ok in ["carnival", "custom", "none", "next", "easter", "event:eidalfitr", "event:diwali"] {
+            assert!(valid_subtitle_mode(ok), "{ok} should be valid");
+        }
+        for bad in ["bogus", "event:", "event:BAD", "event:x y", "event", "EVENT:easter", ""] {
+            assert!(!valid_subtitle_mode(bad), "{bad:?} should be invalid");
+        }
+        let s = Settings {
+            subtitle_mode: "event:Bad Id".into(),
+            ..Settings::default()
+        }
+        .sanitized();
+        assert_eq!(s.subtitle_mode, "carnival");
+    }
+
+    #[test]
+    fn old_settings_keep_a_countdown_choice() {
+        let s: Settings = serde_json::from_str(r#"{"subtitle_mode": "easter"}"#).unwrap();
+        assert_eq!(s.sanitized().subtitle_mode, "easter"); // the interface turns it into "event:easter"
     }
 
     #[test]
@@ -744,5 +810,7 @@ mod tests {
         assert_eq!(s.warn_days, 7);
         assert_eq!(s.banner_text, "MARTIN");
         assert_eq!(s.subtitle_mode, "carnival");
+        assert_eq!(s.holiday_count, 6);
+        assert!(s.traditions.is_empty() && !s.show_holidays);
     }
 }

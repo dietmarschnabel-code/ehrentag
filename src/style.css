@@ -144,6 +144,20 @@ h3 {
   color: #ffd25a;
 }
 
+/* special days of the chosen traditions: blue instead of the personal colours */
+.card.holiday {
+  border-color: #2f5f93;
+  background: #172136;
+}
+
+.card.holiday .card-name {
+  color: #8ec5ff;
+}
+
+.card.holiday .card-when {
+  color: #9fd0ff;
+}
+
 /* note shown once after the old gebdatei.dat was converted */
 .notice {
   margin: 0 0 10px;

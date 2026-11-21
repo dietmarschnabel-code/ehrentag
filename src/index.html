@@ -104,6 +104,24 @@
         </div>
 
         <div class="panel">
+          <h3 data-i18n="holidaysTitle"></h3>
+          <p class="muted small" data-i18n="holidaysHint"></p>
+          <div id="traditions"></div>
+          <label class="check">
+            <input id="set-showholidays" type="checkbox" />
+            <span data-i18n="showHolidays"></span>
+          </label>
+          <label class="field">
+            <span data-i18n="labelHolidayCount"></span>
+            <span class="range-row">
+              <input id="set-hcount" type="range" min="1" max="20" step="1" />
+              <output id="set-hcount-out"></output>
+            </span>
+          </label>
+          <p id="hindu-note" class="muted small" hidden></p>
+        </div>
+
+        <div class="panel">
           <h3 data-i18n="bannerTitle"></h3>
 
           <label class="field">
@@ -114,15 +132,7 @@
 
           <label class="field">
             <span data-i18n="labelSubtitle"></span>
-            <select id="set-subtitle">
-              <option value="carnival" data-i18n="subOpt_carnival"></option>
-              <option value="easter" data-i18n="subOpt_easter"></option>
-              <option value="christmaseve" data-i18n="subOpt_christmaseve"></option>
-              <option value="christmas" data-i18n="subOpt_christmas"></option>
-              <option value="newyear" data-i18n="subOpt_newyear"></option>
-              <option value="custom" data-i18n="subOpt_custom"></option>
-              <option value="none" data-i18n="subOpt_none"></option>
-            </select>
+            <select id="set-subtitle"></select>
           </label>
 
           <label class="field" id="subtext-field" hidden>
@@ -196,6 +206,7 @@
     <script src="lang/ja.js"></script>
     <script src="logic.js"></script>
     <script src="exchange.js"></script>
+    <script src="holidays.js"></script>
     <script src="banner.js"></script>
     <script src="main.js"></script>
   </body>

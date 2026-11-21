@@ -98,25 +98,6 @@ function easterDate(year) {
 }
 
 /**
- * Special days that can be counted down to below the banner. To add one, add it here, a
- * "event_<id>" text in i18n.js, an option in index.html and the id to SUBTITLE_MODES in lib.rs.
- */
-const EVENTS = {
-  easter: (y) => easterDate(y),
-  christmaseve: (y) => new Date(y, 11, 24),
-  christmas: (y) => new Date(y, 11, 25),
-  newyear: (y) => new Date(y, 0, 1),
-};
-
-/** Next date of the event (today included). `today` must be at local midnight. */
-function nextEventDate(id, today) {
-  const dateIn = EVENTS[id];
-  let d = dateIn(today.getFullYear());
-  if (d < today) d = dateIn(today.getFullYear() + 1);
-  return d;
-}
-
-/**
  * When to remind about the next occurrence of an entry: `daysBefore` days earlier
  * at `hour`:00. If that moment has already passed, the following year's occurrence
  * is used. Returns { date, fire } or null.
@@ -172,8 +153,6 @@ if (typeof module !== 'undefined' && module.exports) {
     makeDate,
     nextOccurrence,
     easterDate,
-    EVENTS,
-    nextEventDate,
     firstNameUpper,
     ordinal,
     nextReminder,

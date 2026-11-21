@@ -75,10 +75,20 @@ for (const f of ['main.js', 'index.html', 'logic.js']) {
   for (const m of text.matchAll(/error: '([A-Za-z]+)'/g)) used.add(m[1]);
 }
 for (const kind of ['birthday', 'nameday', 'wedding', 'other']) { used.add('kind_' + kind); used.add('hint_' + kind); }
-for (const k of ['event_easter', 'event_christmaseve', 'event_christmas', 'event_newyear']) used.add(k);
-used.delete('kind_'); used.delete('hint_'); used.delete('event_');
+// special days: a name for every event and every tradition (built as t('event_' + id) and t('trad_' + id))
+const Holidays = require('../src/holidays.js');
+for (const ev of Holidays.EVENTS) used.add('event_' + ev.id);
+for (const trad of Holidays.TRADITIONS) used.add('trad_' + trad);
+used.delete('kind_'); used.delete('hint_'); used.delete('event_'); used.delete('trad_');
 for (const k of used) assert(k in en, 'the code uses an unknown text key: ' + k);
 assert(!('suffixDays' in en), 'suffixDays was replaced by daysUnit');
 assert(!('importDone' in en), 'importDone was replaced by importResult');
+for (const k of ['subOpt_easter', 'subOpt_christmaseve', 'subOpt_christmas', 'subOpt_newyear']) assert(!(k in en), k + ' was replaced by the countdown choices');
+// no text may be left over that nothing uses
+const sourceText = ['main.js', 'index.html', 'logic.js'].map((f) => fs.readFileSync(path.join(src, f), 'utf8')).join('\n');
+for (const k of Object.keys(en)) {
+  const mentioned = used.has(k) || sourceText.includes("'" + k + "'") || sourceText.includes('"' + k + '"');
+  assert(mentioned, 'the text ' + k + ' is not used by the code');
+}
 
 console.log(`i18n tests: ${LANGUAGES.length} languages x ${Object.keys(en).length} texts, all consistent`);

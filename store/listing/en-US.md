@@ -11,7 +11,7 @@ Special Days Manager
 
 Never forget birthdays, name days and anniversaries – with reminders.
 
-## Full description (1233/4000)
+## Full description (1367/4000)
 
 Special Days Manager keeps your birthdays, name days, wedding anniversaries and other dates worth remembering in one clear place – and shows you what is coming up next.
 
@@ -22,6 +22,7 @@ WHAT YOU GET
 • A simple editor to add, change and delete entries
 • Export to calendar files (.ics) for Google Calendar, Apple Calendar, Outlook and others, and import birthdays from them
 • Backup and restore with a plain JSON file
+• Special days of many traditions – Christian, Islamic, Jewish, Hindu, East Asian and Persian – to count down to and see in your list
 • 12 languages: English, German, Spanish, French, Italian, Portuguese, Russian, Turkish, Arabic, Hindi, Chinese and Japanese
 • A playful animated banner – by default "MARTIN", which celebrates the start of carnival season on 11 November at 11:11. Change the text and the message below it: a countdown to Easter, Christmas, New Year or your own words
 

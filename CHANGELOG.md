@@ -3,6 +3,25 @@
 All notable changes to this project. The version number is also the Android `versionCode` basis
 (major × 1,000,000 + minor × 1,000 + patch), so every release must have a higher version than the one before.
 
+## 1.0.2 – 2026-11-21
+
+- **Special days of many traditions** (41 days: Western and Orthodox Christian, Islamic, Jewish, Hindu, East Asian,
+  Persian and general): choose your traditions, count down to any day, show "the next special day of my traditions" below
+  the banner, and show the next ones in the overview list. All names are translated into the 12 languages. Hindu
+  festival dates are included up to 2028 (Diwali, Holi, Raksha Bandhan, Dussehra).
+
+### Fixed
+- **Android back button:** in the editor it now returns to the overview, exactly like the *Back* button at the top; in
+  the overview it still closes the app.
+- **Special days of several traditions:** the list showed only the nearest three days, so with *General* and *Western
+  Christian* chosen, New Year's Eve and New Year's Day were missing. The list now always includes the next day of every
+  chosen tradition, and the number of days shown can be set (default 6).
+- **Settings changed in quick succession** (for example two traditions ticked one after the other) are saved one after
+  the other, always the newest state; before, a slower older save could overwrite a newer one.
+### Changed
+- The countdown choices below the banner (Easter, Christmas Eve, Christmas, New Year) became part of the special days;
+  earlier choices are converted automatically.
+
 ## 1.0.1 – 2026-11-15
 
 ### Added

@@ -31,6 +31,9 @@ Turkish, Arabic, Hindi, Chinese (simplified) and Japanese.
 - **Four kinds of dates:** birthday, name day, wedding anniversary and other special day
 - **Editor:** add, change and delete entries (with a confirmation before deleting)
 - **Warning colour:** dates that are closer than a configurable number of days turn **yellow**
+- **Special days of many traditions:** pick the traditions you celebrate – Western and Orthodox Christian, Islamic, Jewish,
+  Hindu, East Asian, Persian and general days – and count down to them or see the next ones in the list (41 days, from
+  Easter and Eid al-Fitr to Diwali and Lunar New Year)
 - **Reminders on Android:** a notification a configurable number of days before, at a time of your choice
 - **12 languages** – follows your system language; can be changed in the editor (Arabic is shown right-to-left).
   The app name is translated too ("Special Days Manager", "Gestor de días especiales", …).
@@ -110,8 +113,49 @@ A date on 29 February is shown on 28 February in non-leap years.
 - **Banner text:** the big animated text, `MARTIN` by default. Up to 16 characters: Latin letters (including Ä Ö Ü), digits,
   spaces and `! ? . , : - + / & ' ♥`. Other characters (Cyrillic, Arabic, Chinese …) are shown as `?`. Longer texts are
   shrunk automatically so they always fit.
-- **Message below the banner:** choose between a countdown to carnival season (the default, 11 Nov at 11:11), to Easter,
-  Christmas Eve, Christmas or New Year, your own fixed text, or no message at all.
+- **Message below the banner:** choose between a countdown to carnival season (the default, 11 Nov at 11:11), a
+  countdown to any of the special days below, the **next special day of your traditions**, your own fixed text, or no
+  message at all.
+
+### Special days of my traditions
+
+Tick the traditions whose special days you want to see in the editor: *General*, *Western Christian*, *Orthodox
+Christian*, *Islamic*, *Jewish*, *Hindu*, *East Asian* and *Persian / Nowruz*. Nothing is chosen by default, and the
+choice is never guessed from the language. With **Also show them in the overview** the next special days of
+your traditions appear in the list, in blue, between your personal dates. The list always contains the **next day of
+every tradition you chose** (so none is missing), and is then filled with the nearest of the others up to the
+**number of special days** you set (default 6, up to 20). If you choose more traditions than that number, the list is
+as long as the number of traditions. The message below the banner can count down to one special day or always show the
+next one.
+
+| Tradition | Special days |
+|---|---|
+| General | New Year's Day, Valentine's Day, International Women's Day, Halloween, New Year's Eve |
+| Western Christian | Epiphany, Shrove Tuesday (Mardi Gras), Ash Wednesday, Good Friday, Easter, Ascension Day, Pentecost, All Saints' Day, St. Nicholas' Day, Christmas Eve, Christmas |
+| Orthodox Christian | Orthodox Christmas (7 Jan), Old New Year (14 Jan), Orthodox Epiphany (19 Jan), Orthodox Easter |
+| Islamic | Start of Ramadan, Eid al-Fitr, Eid al-Adha, Islamic New Year, Mawlid |
+| Jewish | Rosh Hashanah, Yom Kippur, Hanukkah, Passover |
+| Hindu | Diwali, Holi, Raksha Bandhan, Dussehra |
+| East Asian | Lunar New Year, Lantern Festival, Qingming, Dragon Boat Festival, Mid-Autumn Festival (Chuseok), Obon, Songkran |
+| Persian / Nowruz | Nowruz |
+
+Every special day has its own name in all 12 languages (for example *Zuckerfest*, *Opferfest*, *Ramazan Bayramı*,
+*Старый Новый год*). Please tell us about wrong or unnatural wording.
+
+#### How accurate are the dates?
+
+- **Exact:** fixed dates, Easter and everything counted from it, Orthodox Easter, the Jewish holidays and Nowruz.
+- **Lunar festivals of East Asia** (Lunar New Year, Lantern Festival, Dragon Boat, Mid-Autumn) come from the Chinese
+  calendar of your system, which is a day off in rare cases when the new moon falls minutes before midnight in China. The
+  known cases (2027, 2030) are corrected, and the tests check every year to 2040 against an independent calculation.
+- **Islamic holidays** depend on sighting the moon. The app uses the Umm al-Qura calendar of Saudi Arabia; your country
+  can differ by a day or two. They are marked *approx.*
+- **Hindu festivals** follow a lunisolar calendar that no system provides, so the dates come from a table (Drik Panchang)
+  and are marked *approx.*: regions can differ by a day, and where sources disagreed (for example Holi 2028) the main
+  day by Drik Panchang is used. **The table ends in 2028.** After that no Hindu festivals are shown until it is extended
+  (see below). Janmashtami, Ganesh Chaturthi and Makar Sankranti are not included because the published dates
+  disagreed too much to be reliable.
+- Jewish and Islamic holidays begin the evening before; the date shown is the day itself.
 
 ### Reminders
 
@@ -262,6 +306,7 @@ npm run tauri android build -- --apk          # release APK (unsigned, see below
 node tests/logic.test.js                          # date logic and form validation
 node tests/i18n.test.js                           # all translations are complete and consistent
 node tests/exchange.test.js                       # events.json, calendar file export/import and merging
+node tests/holidays.test.js                       # special days: known dates, Hindu table, astronomical cross-checks
 cargo test --manifest-path src-tauri/Cargo.toml   # data file, conversion of the old file, settings
 ```
 
@@ -284,13 +329,19 @@ The translations are not professionally reviewed – corrections by native speak
 
 The Windows installer itself currently offers English and German, and the product name that Windows, the Start menu and
 the Linux package managers show stays "Ehrentag-Manager" (the name inside the app is translated).
-## Adding a special day to the countdown choices
+## Adding or changing special days
 
-1. Add the day to `EVENTS` in `src/logic.js` (a function returning its date for a given year, e.g. Pentecost).
-2. Add an `event_<id>` text and a `subOpt_<id>` text to every language in `src/i18n.js`.
-3. Add an `<option value="<id>" data-i18n="subOpt_<id>">` to `#set-subtitle` in `src/index.html` and the id to the
-   `case` list in `subtitleText()` in `src/main.js`.
-4. Add the id to `SUBTITLE_MODES` in `src-tauri/src/lib.rs`.
+All special days are listed in [`src/holidays.js`](src/holidays.js), grouped by tradition.
+
+- **A new day:** add a line to `DEFINITIONS` (an id, the tradition, and a rule: `fixed(month, day)`, `fromEaster(offset)`
+  or a calendar), then add an `event_<id>` text to **every** file in `src/lang/`. `node tests/i18n.test.js` lists what is
+  missing. Dates that move with the moon need a check: see the astronomical tests in `tests/holidays.test.js`.
+- **A new tradition:** add its id to `TRADITIONS`, a `trad_<id>` text to every language and the events to `DEFINITIONS`.
+- **Extending the Hindu table (once a year):** add the next year's dates to `HINDU` in `src/holidays.js` and raise
+  `HINDU_DATA_THROUGH`. Take the dates from a published panchang (for example Drik Panchang) and check them against a
+  second source; `tests/holidays.test.js` fails if a festival is missing for a year inside the table.
+- **If the Chinese calendar of a system is a day off** for a year after 2040, add the month start to `LUNAR_FIX`
+  (the test to 2040 prints which ones); `scripts/astro.js` contains the independent calculation.
 
 ## Publishing a release
 
@@ -333,13 +384,13 @@ Use the same password for the keystore and the key. Then add three **repository 
 ## Project layout
 
 ```
-src/                 user interface: index.html, style.css, main.js, logic.js, exchange.js, banner.js, i18n.js
+src/                 user interface: index.html, style.css, main.js, logic.js, exchange.js, holidays.js, banner.js, i18n.js
 src/lang/            one translation file per language
 store/               Google Play listing texts, icon, feature graphic and screenshots
 docs/PLAY_STORE.md   step-by-step guide for publishing on Google Play
 PRIVACY.md           privacy policy (link it in Play Console)
 CHANGELOG.md         what changed in each version
-scripts/             helper to install a desktop entry (icon) for development builds on Linux
+scripts/             version helper, release build, store graphics, astronomy checks, dev desktop entry (Linux)
 src-tauri/src/lib.rs Rust backend: data file (events.json), conversion of the old file, settings
 src-tauri/           Tauri configuration, icons, capabilities
 tests/               JavaScript unit tests
