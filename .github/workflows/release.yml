@@ -82,7 +82,7 @@ jobs:
   android:
     name: Android (.aab for Google Play, .apk)
     needs: desktop
-    if: github.ref_type == 'tag'
+    if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-22.04
     # The Android build is the youngest part of the toolchain: a failure here must not
     # block the desktop release.
