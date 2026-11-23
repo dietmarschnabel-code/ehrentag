@@ -1,6 +1,6 @@
 {
   "name": "Ehrentag-Manager",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Ehrentag-Manager: birthdays, name days and other dates worth remembering",
   "scripts": {

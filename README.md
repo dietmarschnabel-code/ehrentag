@@ -30,12 +30,14 @@ Turkish, Arabic, Hindi, Chinese (simplified) and Japanese.
   how many are shown (default 3) and how far ahead is configurable
 - **Four kinds of dates:** birthday, name day, wedding anniversary and other special day
 - **Editor:** add, change and delete entries (with a confirmation before deleting)
+- **Settings:** a separate screen for display, language, special days, banner, reminders, import/export and an
+  *About* dialog (version, website, license) – kept apart from entering and managing dates
 - **Warning colour:** dates that are closer than a configurable number of days turn **yellow**
 - **Special days of many traditions:** pick the traditions you celebrate – Western and Orthodox Christian, Islamic, Jewish,
   Hindu, East Asian, Persian and general days – and count down to them or see the next ones in the list (41 days, from
   Easter and Eid al-Fitr to Diwali and Lunar New Year)
 - **Reminders on Android:** a notification a configurable number of days before, at a time of your choice
-- **12 languages** – follows your system language; can be changed in the editor (Arabic is shown right-to-left).
+- **12 languages** – follows your system language; can be changed in the settings (Arabic is shown right-to-left).
   The app name is translated too ("Special Days Manager", "Gestor de días especiales", …).
 - **MARTIN** – bouncing rainbow pixel letters with confetti. On **11 November** it celebrates, and at **11:11** the confetti
   goes wild. The banner text and the message below it are configurable (see below).
@@ -90,6 +92,7 @@ sha256sum -c --ignore-missing SHA256SUMS.txt
 1. The **overview** shows today's date and the upcoming dates.
 2. Tap **"Manage / add dates"** to open the editor.
 3. Enter name, type and date, then tap **Add**. That's it – everything is saved immediately.
+4. Everything else (number of dates, language, traditions, banner, reminders, import/export) is under **Settings**.
 
 | Type | Year | Shown as |
 |---|---|---|
@@ -119,7 +122,7 @@ A date on 29 February is shown on 28 February in non-leap years.
 
 ### Special days of my traditions
 
-Tick the traditions whose special days you want to see in the editor: *General*, *Western Christian*, *Orthodox
+Tick the traditions whose special days you want to see in the **Settings**: *General*, *Western Christian*, *Orthodox
 Christian*, *Islamic*, *Jewish*, *Hindu*, *East Asian* and *Persian / Nowruz*. Nothing is chosen by default, and the
 choice is never guessed from the language. With **Also show them in the overview** the next special days of
 your traditions appear in the list, in blue, between your personal dates. The list always contains the **next day of
@@ -159,7 +162,7 @@ Every special day has its own name in all 12 languages (for example *Zuckerfest*
 
 ### Reminders
 
-Switch on **Send reminders** in the editor and choose the time of day and how many days before the date you want to
+Switch on **Send reminders** in the **Settings** and choose the time of day and how many days before the date you want to
 be reminded (`0` = on the day itself). The app asks for the notification permission the first time.
 
 - Reminders are delivered as notifications on **Android**; they are not active on desktop.
@@ -180,7 +183,7 @@ Your dates are stored in a small JSON file, `events.json`:
 
 On desktop you can override this: the environment variable `EHRENTAG_FILE` (full path of the file) wins, and an
 `events.json` in the current directory is used if present. The settings are stored next to it as `settings.json`.
-The editor shows the current path. Uninstalling keeps your data.
+The settings show the current path. Uninstalling keeps your data.
 
 ### The old gebdatei.dat is converted automatically
 
@@ -212,7 +215,7 @@ You can also import an old file by hand later (see below).
 
 ## Calendar files (.ics) and backups
 
-Both are in the editor, under **Export** and **Import**.
+Both are in the **Settings**, under **Export** and **Import**.
 
 **Export** creates either a calendar file (`ehrentag.ics`) or a backup (`events.json`). On desktop a "Save as" dialog
 opens; on a phone the share sheet is used where available; otherwise the text is shown so that you can copy it into a

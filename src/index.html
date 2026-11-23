@@ -23,8 +23,9 @@
         <div id="cards"></div>
         <p id="overview-note" class="muted" hidden></p>
 
-        <div class="center">
+        <div class="center actions">
           <button id="btn-manage" type="button" class="primary big" data-i18n="manageBtn"></button>
+          <button id="btn-settings" type="button" class="big" data-i18n="settingsBtn"></button>
         </div>
       </section>
 
@@ -34,8 +35,6 @@
           <h2 data-i18n="manageTitle"></h2>
           <button id="btn-back" type="button" data-i18n="back"></button>
         </header>
-        <p id="file-label" class="muted small"></p>
-
         <form id="entry-form" class="panel" autocomplete="off" novalidate>
           <h3 id="form-title"></h3>
 
@@ -67,6 +66,17 @@
           </div>
           <p id="form-message" class="message" hidden></p>
         </form>
+
+        <h3 id="list-title"></h3>
+        <ul id="entry-list" class="entry-list"></ul>
+      </section>
+
+      <!-- ───────────── Settings / configuration ───────────── -->
+      <section id="view-settings" hidden>
+        <header class="manage-head">
+          <h2 data-i18n="settingsBtn"></h2>
+          <button id="btn-settings-back" type="button" data-i18n="back"></button>
+        </header>
 
         <div class="panel">
           <h3 data-i18n="settingsTitle"></h3>
@@ -186,10 +196,34 @@
           </div>
         </div>
 
-        <h3 id="list-title"></h3>
-        <ul id="entry-list" class="entry-list"></ul>
+        <div class="panel">
+          <p id="file-label" class="muted small"></p>
+          <div class="row">
+            <button id="btn-about" type="button" data-i18n="aboutBtn"></button>
+          </div>
+        </div>
       </section>
     </main>
+
+    <!-- ───────────── About dialog ───────────── -->
+    <dialog id="about-dialog" aria-labelledby="about-title">
+      <h3 id="about-title" data-i18n="aboutBtn"></h3>
+      <p class="about-name" data-i18n="appTitle"></p>
+      <p id="about-version" class="muted small"></p>
+      <dl class="about-list">
+        <dt data-i18n="aboutWebsite"></dt>
+        <dd><a id="about-website" href="https://github.com/dietmarschnabel-code/ehrentag" data-external>github.com/dietmarschnabel-code/ehrentag</a></dd>
+        <dt data-i18n="aboutLicense"></dt>
+        <dd>
+          MIT License<br />
+          <a id="about-license" href="https://github.com/dietmarschnabel-code/ehrentag/blob/main/LICENSE" data-external data-i18n="aboutLicenseLink"></a>
+        </dd>
+      </dl>
+      <p class="muted small">Copyright © 2026 Dietmar Schnabel</p>
+      <div class="row">
+        <button id="btn-about-close" type="button" class="primary" data-i18n="btnClose"></button>
+      </div>
+    </dialog>
 
     <script src="i18n.js"></script>
     <script src="lang/de.js"></script>

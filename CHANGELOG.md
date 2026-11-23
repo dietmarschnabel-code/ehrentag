@@ -3,6 +3,18 @@
 All notable changes to this project. The version number is also the Android `versionCode` basis
 (major × 1,000,000 + minor × 1,000 + patch), so every release must have a higher version than the one before.
 
+## 1.0.3 – 2026-11-23
+
+### Changed
+- **Separate settings screen** (button *Settings* in the overview): number of dates, language, warning colour, special
+  days of the traditions, banner and message, reminders, **import and export** and the data file path moved here from
+  the editor. The editor now only contains entering, changing and deleting dates.
+- Android back button: from the settings it returns to the overview, like in the editor.
+
+### Added
+- **About dialog** in the settings: version, link to the website (GitHub), and the license (MIT) with a link to the
+  license text. Links open in the system browser (`tauri-plugin-opener`).
+
 ## 1.0.2 – 2026-11-21
 
 - **Special days of many traditions** (41 days: Western and Orthodox Christian, Islamic, Jewish, Hindu, East Asian,

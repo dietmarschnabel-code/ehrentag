@@ -433,8 +433,6 @@ function buildTraditions() {
 }
 
 function renderManage() {
-  $('file-label').textContent = t('fileLabel', [state.dataPath]);
-
   const editing = state.editing !== null;
   $('form-title').textContent = t(editing ? 'formEdit' : 'formNew');
   $('btn-save').textContent = t(editing ? 'btnSave' : 'btnAdd');
@@ -452,6 +450,14 @@ function renderManage() {
   sel.value = current;
   updateYearHint();
   renderFormMessage();
+
+  $('list-title').textContent = t('allEntries', [state.entries.length]);
+  renderList();
+}
+
+/** Fills the configuration view with the current settings. */
+function renderSettings() {
+  $('file-label').textContent = t('fileLabel', [state.dataPath]);
 
   const s = state.settings;
   $('set-count').value = s.count;
@@ -477,9 +483,6 @@ function renderManage() {
   buildTraditions();
   $('set-subtext').value = s.subtitle_text;
   $('subtext-field').hidden = s.subtitle_mode !== 'custom';
-
-  $('list-title').textContent = t('allEntries', [state.entries.length]);
-  renderList();
 }
 
 function startEdit(i) {
@@ -585,6 +588,8 @@ function setLanguage(l) {
   applyI18n();
   renderOverview();
   if (!$('view-manage').hidden) renderManage();
+  if (!$('view-settings').hidden) renderSettings();
+  if ($('about-dialog').open) renderAbout();
   persistSettings();
 }
 
@@ -679,6 +684,7 @@ async function importFile(ev) {
     setImportMessage(false, t('importResult', [merged.added, skipped + merged.skipped]));
     scheduleReminders();
     renderManage();
+    renderSettings();
   } catch (e) {
     const unreadable = e === 'no_entries' || e instanceof SyntaxError || (e && e.message === 'bad_format');
     setImportMessage(true, unreadable ? t('importNone') : t('errSave', [String(e)]));
@@ -771,40 +777,109 @@ async function copyExportText() {
 function show(view) {
   $('view-overview').hidden = view !== 'overview';
   $('view-manage').hidden = view !== 'manage';
+  $('view-settings').hidden = view !== 'settings';
   if (view === 'overview') {
     renderOverview();
     requestAnimationFrame(() => Banner.resize());
-  } else {
+  } else if (view === 'manage') {
     state.formMessage = null;
+    renderManage();
+  } else {
     setImportMessage(false, '');
     setExportMessage(false, '');
     $('export-text').hidden = true;
-    renderManage();
+    $('remind-message').hidden = true;
+    renderSettings();
   }
   window.scrollTo(0, 0);
 }
 
-function leaveManage() {
+/** Back to the overview from the editor or from the settings. */
+function leaveSubview() {
   clearForm();
   state.confirmDelete = null;
   show('overview');
+}
+
+// ───────────────────────────── About dialog ─────────────────────────────
+
+/** Opens a web page in the system browser (desktop and Android); falls back to a normal link target. */
+async function openExternal(url) {
+  try {
+    const opener = window.__TAURI__ && window.__TAURI__.opener;
+    if (opener && typeof opener.openUrl === 'function') {
+      await opener.openUrl(url);
+      return;
+    }
+  } catch (e) {
+    console.error('open url', e);
+  }
+  window.open(url, '_blank', 'noopener');
+}
+
+async function appVersion() {
+  try {
+    const app = window.__TAURI__ && window.__TAURI__.app;
+    if (app && typeof app.getVersion === 'function') return await app.getVersion();
+  } catch (e) {
+    /* not available: no version line */
+  }
+  return '';
+}
+
+async function renderAbout() {
+  const v = await appVersion();
+  $('about-version').textContent = v ? t('aboutVersion', [v]) : '';
+  $('about-version').hidden = !v;
+}
+
+function openAbout() {
+  history.pushState({ view: 'about' }, ''); // the Android back button closes the dialog first
+  renderAbout();
+  $('about-dialog').showModal();
+}
+
+/** Closes the dialog. Its 'close' event (see bindEvents) takes the history step back, whichever way it was closed. */
+function closeAbout() {
+  const dlg = $('about-dialog');
+  if (dlg.open) dlg.close();
 }
 
 function bindEvents() {
   // The Android back button (and the browser's) walks back through the history: opening the editor adds one
   // step, so that "back" in the editor returns to the overview, exactly like the button at the top. In the
   // overview there is no step left, so "back" leaves the app.
-  $('btn-manage').addEventListener('click', () => {
-    history.pushState({ view: 'manage' }, '');
-    show('manage');
-  });
-  $('btn-back').addEventListener('click', () => {
-    if (history.state && history.state.view === 'manage') history.back(); // ends in the popstate handler below
-    else leaveManage();
-  });
+  const open = (view) => {
+    history.pushState({ view }, '');
+    show(view);
+  };
+  const back = () => {
+    const v = history.state && history.state.view;
+    if (v === 'manage' || v === 'settings') history.back(); // ends in the popstate handler below
+    else leaveSubview();
+  };
+  $('btn-manage').addEventListener('click', () => open('manage'));
+  $('btn-settings').addEventListener('click', () => open('settings'));
+  $('btn-back').addEventListener('click', back);
+  $('btn-settings-back').addEventListener('click', back);
   window.addEventListener('popstate', () => {
-    if (!$('view-manage').hidden) leaveManage();
+    const v = history.state && history.state.view;
+    if ($('about-dialog').open && v !== 'about') closeAbout();
+    if ($('view-overview').hidden && v !== 'manage' && v !== 'settings') leaveSubview();
   });
+
+  $('btn-about').addEventListener('click', openAbout);
+  $('btn-about-close').addEventListener('click', () => closeAbout());
+  // Esc closes the dialog natively: keep the history in step
+  $('about-dialog').addEventListener('close', () => {
+    if (history.state && history.state.view === 'about') history.back();
+  });
+  document.querySelectorAll('a[data-external]').forEach((a) =>
+    a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      openExternal(a.href);
+    })
+  );
   $('btn-cancel').addEventListener('click', () => {
     clearForm();
     state.formMessage = null;
