@@ -121,7 +121,9 @@ jobs:
       - name: Install newest SDK platform, build-tools and NDK ${{ env.NDK_MAJOR }}
         run: |
           set -euo pipefail
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          set +o pipefail
+          yes 2>/dev/null | sdkmanager --licenses >/dev/null 2>&1 || true
+          set -o pipefail
           LIST=$(sdkmanager --list 2>/dev/null | awk -F'|' '{gsub(/ /,"",$1); print $1}')
 
           # Newest stable platform (android-37, android-37.0, ...) and newest stable build-tools
@@ -137,7 +139,7 @@ jobs:
 
           if [ -z "$NDK" ]; then echo "::error::No stable NDK (>= 28) found"; exit 1; fi
           echo "Installing: $PLATFORM, $BUILD_TOOLS, $NDK"
-          yes | sdkmanager --install "$PLATFORM" "$BUILD_TOOLS" "$NDK" "platform-tools"
+          sdkmanager --install "$PLATFORM" "$BUILD_TOOLS" "$NDK" "platform-tools"
 
           NDK_VERSION="${NDK#ndk;}"
           echo "NDK_HOME=${ANDROID_HOME}/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
