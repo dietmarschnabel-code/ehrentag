@@ -10,6 +10,7 @@ All notable changes to this project. The version number is also the Android `ver
   days of the traditions, banner and message, reminders, **import and export** and the data file path moved here from
   the editor. The editor now only contains entering, changing and deleting dates.
 - Android back button: from the settings it returns to the overview, like in the editor.
+- Fix Android build on github.
 
 ### Added
 - **macOS build:** the release workflow now builds a universal `.dmg` (Apple Silicon + Intel) on a GitHub macOS runner
