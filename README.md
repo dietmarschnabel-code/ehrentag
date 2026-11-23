@@ -17,7 +17,7 @@
 -->
 
 Ehrentag-Manager shows you the **next dates you shouldn't forget** and lets you add new entries in a built-in editor.
-It is the modern successor of a small Pascal program and runs on **Windows**, **Linux** and **Android** from a single
+It is the modern successor of a small Pascal program and runs on **Windows**, **macOS**, **Linux** and **Android** from a single
 code base ([Tauri 2](https://tauri.app/): a Rust backend with a small HTML/CSS/JavaScript interface).
 The user interface is available in **12 languages**: English, German, Spanish, French, Italian, Portuguese, Russian,
 Turkish, Arabic, Hindi, Chinese (simplified) and Japanese.
@@ -58,6 +58,15 @@ Download and run the `…-setup.exe` installer. It creates Start menu shortcuts 
 
 > The installer is not code-signed, so Windows SmartScreen may show a warning – click "More info" → "Run anyway".
 > Windows 10/11 already include the WebView2 runtime the app needs.
+
+### macOS
+
+Download the `…_universal.dmg` (one file for Apple Silicon and Intel Macs), open it and drag **Ehrentag-Manager** into
+*Applications*.
+
+> The app is not notarized by Apple, so on the first start macOS may say it cannot verify the developer.
+> Right-click (or Control-click) the app → **Open** → **Open**. If macOS reports the app as "damaged" after the
+> download, run `xattr -dr com.apple.quarantine /Applications/Ehrentag-Manager.app` once in the Terminal.
 
 ### Debian, Ubuntu, Linux Mint
 
@@ -179,6 +188,7 @@ Your dates are stored in a small JSON file, `events.json`:
 |---|---|
 | Android | the app's private storage (not visible to other apps) |
 | Windows | `%APPDATA%\ehrentag-manager\events.json` |
+| macOS | `~/Library/Application Support/ehrentag-manager/events.json` |
 | Linux | `~/.local/share/ehrentag-manager/events.json` |
 
 On desktop you can override this: the environment variable `EHRENTAG_FILE` (full path of the file) wins, and an
@@ -237,7 +247,7 @@ imported file instead.
 ## Building from source
 
 Requirements: [Rust](https://rustup.rs/) (stable), [Node.js](https://nodejs.org/) (only for the Tauri command line tool),
-and on Linux the WebKitGTK development packages:
+on macOS the Xcode command line tools (`xcode-select --install`), and on Linux the WebKitGTK development packages:
 
 ```bash
 sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
@@ -361,7 +371,7 @@ git push origin main v1.0.2
 
 The workflow refuses a tag that does not match the version in the files.
 
-The workflow runs the tests, builds the Windows installer, the `.deb` and `.rpm` and the Android APK, creates the
+The workflow runs the tests, builds the Windows installer, the macOS `.dmg` (universal), the `.deb` and `.rpm` and the Android APK, creates the
 checksums and publishes everything as a GitHub release.
 
 ### Google Play

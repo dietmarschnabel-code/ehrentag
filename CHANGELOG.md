@@ -12,6 +12,8 @@ All notable changes to this project. The version number is also the Android `ver
 - Android back button: from the settings it returns to the overview, like in the editor.
 
 ### Added
+- **macOS build:** the release workflow now builds a universal `.dmg` (Apple Silicon + Intel) on a GitHub macOS runner
+  and attaches it to the release. Optional signing/notarization is described in `docs/MACOS.md`.
 - **About dialog** in the settings: version, link to the website (GitHub), and the license (MIT) with a link to the
   license text. Links open in the system browser (`tauri-plugin-opener`).
 

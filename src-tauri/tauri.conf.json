@@ -38,6 +38,9 @@
     "shortDescription": "Birthdays, name days and other dates worth remembering",
     "longDescription": "Ehrentag-Manager shows your upcoming birthdays, name days, wedding anniversaries and other special dates, has an editor for adding new entries, and can send reminders on Android. English and German user interface, with a MARTIN banner for the start of carnival season on 11 November.",
     "licenseFile": "../LICENSE",
+    "macOS": {
+      "signingIdentity": "-"
+    },
     "windows": {
       "nsis": {
         "installMode": "perMachine",
