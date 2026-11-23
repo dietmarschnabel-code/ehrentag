@@ -48,7 +48,7 @@ async function open(browser, loc, fixedIso) {
     state.entries = mock.entries.slice();
     state.settings.language = lang;
     state.settings.warn_days = 7;
-    applyI18n(); renderOverview(); renderManage();
+    applyI18n(); renderOverview(); renderManage(); renderSettings();
   }, loc.entries, loc.lang);
   await sleep(300);
   return page;
@@ -75,6 +75,10 @@ async function open(browser, loc, fixedIso) {
     await page.type('#f-month', '5'); await page.type('#f-year', '1985');
     await page.evaluate(() => window.scrollTo(0, 0)); await sleep(200);
     await page.screenshot({ path: path.join(dir, '3-editor.png') });
+    // settings and import/export live in their own view now: go back to the overview, then open it
+    await page.click('#btn-back'); await sleep(300);
+    await page.click('#btn-settings'); await sleep(300);
+    await page.evaluate(() => window.scrollTo(0, 0)); await sleep(200);
     await page.evaluate(() => document.querySelector('#set-banner').closest('.panel').scrollIntoView({ block: 'start' })); await sleep(250);
     await page.screenshot({ path: path.join(dir, '4-settings.png') });
     await page.evaluate(() => document.querySelector('#btn-export-ics').closest('.panel').scrollIntoView({ block: 'start' })); await sleep(250);
