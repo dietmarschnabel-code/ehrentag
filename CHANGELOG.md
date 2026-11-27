@@ -3,6 +3,19 @@
 All notable changes to this project. The version number is also the Android `versionCode` basis
 (major × 1,000,000 + minor × 1,000 + patch), so every release must have a higher version than the one before.
 
+## 1.0.4 – 2026-11-27
+
+### Added
+- **More Christian holidays** (51 special days in total across all 8 traditions, translated into all 12 languages):
+  - *Western Christian:* Easter Monday, Whit Monday, Corpus Christi, Assumption of Mary (15 Aug), Reformation Day (31 Oct),
+    Feast of the Immaculate Conception (8 Dec), and St. Stephen's Day (26 Dec).
+  - *Orthodox Christian:* Orthodox Good Friday, Orthodox Ascension Day, and Orthodox Pentecost.
+
+### Fixed
+- **Store screenshots and graphics:** `scripts/make-store-screenshots.js` now switches to the separate Settings screen
+  before capturing `4-settings.png` and `5-export.png`; regenerated the English and German Play Store screenshots,
+  store icon, and feature graphic.
+
 ## 1.0.3 – 2026-11-23
 
 ### Changed
