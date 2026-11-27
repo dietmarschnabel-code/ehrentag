@@ -98,6 +98,7 @@ const Holidays = (() => {
   // ───────────── the rules ─────────────
   const fixed = (month, day) => (year) => [new Date(year, month - 1, day)];
   const fromEaster = (offset) => (year) => [addDays(easter(year), offset)];
+  const fromOrthodoxEaster = (offset) => (year) => [addDays(orthodoxEasterDate(year), offset)];
 
   /** Orthodox Easter: Julian computus (Meeus), then +13 days to the Gregorian calendar (valid 1900-2099). */
   function orthodoxEasterDate(year) {
@@ -129,17 +130,27 @@ const Holidays = (() => {
     ['ashwednesday', 'western', fromEaster(-46)],
     ['goodfriday', 'western', fromEaster(-2)],
     ['easter', 'western', fromEaster(0)],
+    ['eastermonday', 'western', fromEaster(1)],
     ['ascension', 'western', fromEaster(39)],
     ['pentecost', 'western', fromEaster(49)],
+    ['whitmonday', 'western', fromEaster(50)],
+    ['corpuschristi', 'western', fromEaster(60)],
+    ['assumption', 'western', fixed(8, 15)],
+    ['reformationday', 'western', fixed(10, 31)],
     ['allsaints', 'western', fixed(11, 1)],
     ['stnicholas', 'western', fixed(12, 6)],
+    ['immaculateconception', 'western', fixed(12, 8)],
     ['christmaseve', 'western', fixed(12, 24)],
     ['christmas', 'western', fixed(12, 25)],
+    ['ststephen', 'western', fixed(12, 26)],
 
     ['orthodoxchristmas', 'orthodox', fixed(1, 7)],
     ['oldnewyear', 'orthodox', fixed(1, 14)],
     ['orthodoxepiphany', 'orthodox', fixed(1, 19)],
-    ['orthodoxeaster', 'orthodox', (year) => [orthodoxEasterDate(year)]],
+    ['orthodoxgoodfriday', 'orthodox', fromOrthodoxEaster(-2)],
+    ['orthodoxeaster', 'orthodox', fromOrthodoxEaster(0)],
+    ['orthodoxascension', 'orthodox', fromOrthodoxEaster(39)],
+    ['orthodoxpentecost', 'orthodox', fromOrthodoxEaster(49)],
 
     ['ramadan', 'islamic', inCalendar('islamic-umalqura', 9, 1), true],
     ['eidalfitr', 'islamic', inCalendar('islamic-umalqura', 10, 1), true],

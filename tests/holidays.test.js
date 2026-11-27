@@ -13,7 +13,7 @@ const ids = H.EVENTS.map((e) => e.id);
 assert.strictEqual(new Set(ids).size, ids.length, 'event ids are unique');
 for (const e of H.EVENTS) assert(H.TRADITIONS.includes(e.tradition), e.id + ': unknown tradition');
 for (const t of H.TRADITIONS) assert(H.EVENTS.some((e) => e.tradition === t), t + ' has no events');
-assert.strictEqual(H.EVENTS.length, 41);
+assert.strictEqual(H.EVENTS.length, 51);
 
 // ───────── known dates (checked against published calendars) ─────────
 const KNOWN = {
@@ -22,10 +22,20 @@ const KNOWN = {
   mardigras: { 2027: '2027-02-09', 2028: '2028-02-29' },
   ashwednesday: { 2026: '2026-02-18', 2027: '2027-02-10', 2028: '2028-03-01' },
   goodfriday: { 2026: '2026-04-03', 2028: '2028-04-14' },
+  eastermonday: { 2026: '2026-04-06', 2027: '2027-03-29', 2028: '2028-04-17' },
   ascension: { 2026: '2026-05-14', 2027: '2027-05-06' },
   pentecost: { 2026: '2026-05-24', 2027: '2027-05-16' },
+  whitmonday: { 2026: '2026-05-25', 2027: '2027-05-17' },
+  corpuschristi: { 2026: '2026-06-04', 2027: '2027-05-27', 2028: '2028-06-15' },
+  assumption: { 2026: '2026-08-15' },
+  reformationday: { 2026: '2026-10-31' },
+  immaculateconception: { 2026: '2026-12-08', 2027: '2027-12-08' },
+  ststephen: { 2026: '2026-12-26' },
   // Orthodox
+  orthodoxgoodfriday: { 2026: '2026-04-10', 2027: '2027-04-30', 2028: '2028-04-14' },
   orthodoxeaster: { 2026: '2026-04-12', 2027: '2027-05-02', 2028: '2028-04-16' },
+  orthodoxascension: { 2026: '2026-05-21', 2027: '2027-06-10' },
+  orthodoxpentecost: { 2026: '2026-05-31', 2027: '2027-06-20' },
   orthodoxchristmas: { 2027: '2027-01-07' },
   // Jewish (the day itself; they begin the evening before)
   roshhashanah: { 2026: '2026-09-12', 2027: '2027-10-02', 2028: '2028-09-21' },
@@ -76,12 +86,13 @@ assert.deepStrictEqual(H.upcoming(['general'], today, 1).map((x) => x.id), ['new
 // ───────── the overview list: the next day of EVERY chosen tradition is always in it ─────────
 const ids3 = (list) => list.map((x) => x.id);
 // General + Western Christian: with the plain "nearest three" New Year's Eve and New Year were missing
-assert.deepStrictEqual(ids3(H.upcoming(['general', 'western'], today, 3)), ['stnicholas', 'christmaseve', 'christmas']);
+assert.deepStrictEqual(ids3(H.upcoming(['general', 'western'], today, 3)), ['stnicholas', 'immaculateconception', 'christmaseve']);
 const bal3 = H.upcomingBalanced(['general', 'western'], today, 3);
-assert.deepStrictEqual(ids3(bal3), ['stnicholas', 'christmaseve', 'newyearseve'], 'one per tradition first, then the nearest');
+assert.deepStrictEqual(ids3(bal3), ['stnicholas', 'immaculateconception', 'newyearseve'], 'one per tradition first, then the nearest');
 const bal6 = H.upcomingBalanced(['general', 'western'], today, 6);
-assert.deepStrictEqual(ids3(bal6), ['stnicholas', 'christmaseve', 'christmas', 'newyearseve', 'newyear', 'epiphany']);
-assert(bal6.some((x) => x.id === 'newyear'), "New Year's Day is shown");
+assert.deepStrictEqual(ids3(bal6), ['stnicholas', 'immaculateconception', 'christmaseve', 'christmas', 'ststephen', 'newyearseve']);
+const bal7 = H.upcomingBalanced(['general', 'western'], today, 7);
+assert(bal7.some((x) => x.id === 'newyear'), "New Year's Day is shown");
 // more traditions than places: every tradition still has its next day
 const everything = H.upcomingBalanced(H.TRADITIONS, today, 3);
 assert.strictEqual(everything.length, H.TRADITIONS.length);
